@@ -125,7 +125,7 @@ function CounsellorDetail() {
               <p className="mt-6 text-[15px] leading-relaxed text-foreground/90">{counsellor.bio}</p>
 
               <div className="mt-6 flex flex-wrap gap-2">
-                {counsellor.specialties.map((s) => (
+                {counsellor.specialties.map((s: string) => (
                   <span key={s} className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
                     {s}
                   </span>
