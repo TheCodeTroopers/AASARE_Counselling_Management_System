@@ -9,38 +9,103 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppointmentsRouteImport } from './routes/appointments'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CounsellorsIndexRouteImport } from './routes/counsellors.index'
+import { Route as CounsellorsIdRouteImport } from './routes/counsellors.$id'
 
+const AppointmentsRoute = AppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CounsellorsIndexRoute = CounsellorsIndexRouteImport.update({
+  id: '/counsellors/',
+  path: '/counsellors/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CounsellorsIdRoute = CounsellorsIdRouteImport.update({
+  id: '/counsellors/$id',
+  path: '/counsellors/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/appointments': typeof AppointmentsRoute
+  '/counsellors/$id': typeof CounsellorsIdRoute
+  '/counsellors/': typeof CounsellorsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/appointments': typeof AppointmentsRoute
+  '/counsellors/$id': typeof CounsellorsIdRoute
+  '/counsellors': typeof CounsellorsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/appointments': typeof AppointmentsRoute
+  '/counsellors/$id': typeof CounsellorsIdRoute
+  '/counsellors/': typeof CounsellorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/appointments'
+    | '/counsellors/$id'
+    | '/counsellors/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/about' | '/appointments' | '/counsellors/$id' | '/counsellors'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/appointments'
+    | '/counsellors/$id'
+    | '/counsellors/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AppointmentsRoute: typeof AppointmentsRoute
+  CounsellorsIdRoute: typeof CounsellorsIdRoute
+  CounsellorsIndexRoute: typeof CounsellorsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/appointments': {
+      id: '/appointments'
+      path: '/appointments'
+      fullPath: '/appointments'
+      preLoaderRoute: typeof AppointmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +113,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/counsellors/': {
+      id: '/counsellors/'
+      path: '/counsellors'
+      fullPath: '/counsellors/'
+      preLoaderRoute: typeof CounsellorsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/counsellors/$id': {
+      id: '/counsellors/$id'
+      path: '/counsellors/$id'
+      fullPath: '/counsellors/$id'
+      preLoaderRoute: typeof CounsellorsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AppointmentsRoute: AppointmentsRoute,
+  CounsellorsIdRoute: CounsellorsIdRoute,
+  CounsellorsIndexRoute: CounsellorsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -181,7 +181,7 @@ function CounsellorDetail() {
               <div className="mt-6">
                 <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">Time slot</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {slots.map((s) => {
+                  {slots.map((s: { time: string; booked: boolean }) => {
                     const active = s.time === selectedTime;
                     return (
                       <button
