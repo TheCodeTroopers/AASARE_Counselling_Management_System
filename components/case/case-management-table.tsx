@@ -26,7 +26,7 @@ export function CaseManagementTable() {
   }, [cases, search]);
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
-  if (isError) return <div className="glass-card rounded-2xl p-5 text-sm text-rose-600">Unable to load case records.</div>;
+  if (isError) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load case records.</div>;
 
   return (
     <SectionCard title="Case Management" subtitle="Private counselling case directory; completely separate from appointment workflows.">
@@ -41,9 +41,9 @@ export function CaseManagementTable() {
       </div>
 
       {viewMode === 'table' ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-200">
+        <div className="overflow-hidden rounded-[20px] border border-[#E8DDD5] shadow-card">
           <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50">
+            <thead className="bg-[#F8F3EE] text-[#6D214F]">
               <tr>
                 <th className="p-3">Case ID</th>
                 <th className="p-3">Student Name</th>
@@ -55,7 +55,7 @@ export function CaseManagementTable() {
             </thead>
             <tbody>
               {filteredCases.map((item) => (
-                <tr key={item.id} className="border-t border-slate-200">
+                <tr key={item.id} className="border-t border-[#E8DDD5] bg-white transition hover:bg-[#F8F3EE]">
                   <td className="p-3">{item.id}</td>
                   <td className="p-3">{item.studentName}</td>
                   <td className="p-3">{item.createdDate}</td>
@@ -63,9 +63,9 @@ export function CaseManagementTable() {
                   <td className="p-3"><StatusBadge status={item.status} /></td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-2">
-                      <Link href={`/case/${item.id}`} className="rounded-lg bg-primary px-3 py-1 text-xs text-white">Open</Link>
-                      <button className="rounded-lg bg-slate-100 px-3 py-1 text-xs">Edit</button>
-                      <button className="rounded-lg bg-danger px-3 py-1 text-xs text-white">Delete</button>
+                      <Link href={`/case/${item.id}`} className="rounded-2xl bg-[#6D214F] px-3 py-1 text-xs text-white">Open</Link>
+                      <button className="rounded-2xl bg-[#F8F3EE] px-3 py-1 text-xs text-[#6D214F]">Edit</button>
+                      <button className="rounded-2xl bg-[#E76F51] px-3 py-1 text-xs text-white">Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -76,7 +76,7 @@ export function CaseManagementTable() {
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredCases.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+            <div key={item.id} className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold">{item.id}</p>
@@ -91,10 +91,10 @@ export function CaseManagementTable() {
                 <p>Last updated: {item.lastUpdated}</p>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link href={`/case/${item.id}`} className="rounded-lg bg-primary px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Eye className="h-3 w-3" />Open</span></Link>
-                <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs"><span className="flex gap-1 items-center"><PenSquare className="h-3 w-3" />Edit</span></button>
-                <button className="rounded-lg bg-slate-100 px-3 py-2 text-xs"><span className="flex gap-1 items-center"><Copy className="h-3 w-3" />Duplicate</span></button>
-                <button className="rounded-lg bg-danger px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Trash2 className="h-3 w-3" />Delete</span></button>
+                <Link href={`/case/${item.id}`} className="rounded-2xl bg-[#6D214F] px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Eye className="h-3 w-3" />Open</span></Link>
+                <button className="rounded-2xl bg-[#F8F3EE] px-3 py-2 text-xs text-[#6D214F]"><span className="flex gap-1 items-center"><PenSquare className="h-3 w-3" />Edit</span></button>
+                <button className="rounded-2xl bg-[#F8F3EE] px-3 py-2 text-xs text-[#6D214F]"><span className="flex gap-1 items-center"><Copy className="h-3 w-3" />Duplicate</span></button>
+                <button className="rounded-2xl bg-[#E76F51] px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Trash2 className="h-3 w-3" />Delete</span></button>
               </div>
             </div>
           ))}

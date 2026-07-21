@@ -25,26 +25,26 @@ export function SlotManagement() {
     <SectionCard title="Daily Slot Management" subtitle="Manage up to two daily slots for incoming appointments.">
       <div className="mb-4 grid gap-4 md:grid-cols-2">
         {slotState.map((slot) => (
-          <div key={slot.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div key={slot.id} className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-700">{slot.id === 'slot1' ? 'Slot 1' : 'Slot 2'}</p>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{slot.status}</span>
+              <p className="text-sm font-semibold text-[#6D214F]">{slot.id === 'slot1' ? 'Slot 1' : 'Slot 2'}</p>
+              <span className="rounded-full bg-[#F8F3EE] px-2.5 py-1 text-xs font-semibold text-[#6D214F]">{slot.status}</span>
             </div>
-            <label className="mb-3 block text-sm text-slate-500">
+            <label className="mb-3 block text-sm text-[#6E6E6E]">
               Time picker
               <input
                 type="time"
                 value={slot.time}
                 onChange={(event) => updateSlot(slot.id, 'time', event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-3"
+                className="mt-1 w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
               />
             </label>
-            <label className="block text-sm text-slate-500">
+            <label className="block text-sm text-[#6E6E6E]">
               Status
               <select
                 value={slot.status}
                 onChange={(event) => updateSlot(slot.id, 'status', event.target.value)}
-                className="mt-1 w-full rounded-xl border border-slate-200 p-3"
+                className="mt-1 w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
               >
                 <option value="available">Available</option>
                 <option value="pending">Pending</option>

@@ -13,16 +13,16 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #fcfaf8 0%, #f8f3ee 100%);
+  color: #2f2f2f;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid #e8ddd5;
+  box-shadow: 0 18px 40px rgba(109, 33, 79, 0.08);
 }
 
 input,
@@ -31,11 +31,16 @@ select {
   font: inherit;
 }
 
+::selection {
+  background: #f8f3ee;
+  color: #6d214f;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c89b7b;
   border-radius: 9999px;
 }

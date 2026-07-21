@@ -13,28 +13,28 @@ export function GoogleDrivePanel() {
   });
 
   if (isLoading) return <LoadingSkeleton rows={3} />;
-  if (isError) return <div className="glass-card rounded-2xl p-5 text-sm text-rose-600">Unable to load drive files.</div>;
+  if (isError) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load drive files.</div>;
 
   return (
     <SectionCard title="Google Drive Integration" subtitle="Frontend-only integration surface for attachment workflow preview.">
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Connection status</p>
-          <p className="mt-2 text-lg font-semibold text-emerald-700">Connected</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="text-sm text-[#6E6E6E]">Connection status</p>
+          <p className="mt-2 text-lg font-semibold text-[#4CAF50]">Connected</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-500">Sync status</p>
-          <p className="mt-2 text-lg font-semibold text-primary">Synced 5 mins ago</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="text-sm text-[#6E6E6E]">Sync status</p>
+          <p className="mt-2 text-lg font-semibold text-[#6D214F]">Synced 5 mins ago</p>
         </div>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+      <div className="mt-4 rounded-[20px] border border-dashed border-[#E8DDD5] bg-[#F8F3EE] p-6 text-center text-sm text-[#6E6E6E]">
         Upload placeholder for recently attached files.
       </div>
 
       <div className="mt-4 space-y-3">
         {data?.data.map((file) => (
-          <div key={file.name} className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700">
+          <div key={file.name} className="rounded-2xl border border-[#E8DDD5] bg-white p-3 text-sm text-[#2F2F2F]">
             {file.name} · {file.syncedAt}
           </div>
         ))}

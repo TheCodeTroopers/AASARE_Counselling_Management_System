@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -16,20 +14,20 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
   return (
-    <div className={cn('min-h-screen transition-colors', isDark ? 'bg-slate-950 text-slate-100' : 'bg-background text-slate-900')}>
+    <div className={cn('min-h-screen transition-colors duration-300', isDark ? 'bg-[#22111b] text-[#fdf8f4]' : 'bg-background text-text')}>
       <div className="flex min-h-screen">
-        <aside className={cn('hidden w-80 border-r p-6 lg:block', isDark ? 'border-slate-800 bg-slate-900/95' : 'border-slate-200 bg-white/90')}>
+        <aside className="hidden w-72 border-r border-[#a76f87]/30 bg-[#6D214F] p-6 lg:block">
           <div className="mb-8 flex items-center gap-3">
-            <div className="rounded-2xl bg-primary p-3 text-white shadow-soft">
+            <div className="rounded-2xl bg-[#F8F3EE] p-3 text-[#6D214F] shadow-soft">
               <LayoutGrid className="h-5 w-5" />
             </div>
             <div>
-              <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>AASARE</p>
-              <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>Counsellor Panel</p>
+              <p className="text-lg font-semibold text-white">AASARE</p>
+              <p className="text-sm text-[#f6e7db]">Counsellor Panel</p>
             </div>
           </div>
 
-          <nav className="space-y-1">
+          <nav className="space-y-2">
             {COUNSELLOR_NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href || (item.href !== '#' && pathname.startsWith(item.href));
 
@@ -38,12 +36,10 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                   key={item.label}
                   href={item.href}
                   className={cn(
-                    'flex items-center rounded-xl px-3 py-2.5 text-sm font-medium transition',
+                    'flex items-center rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-300',
                     isActive
-                      ? 'bg-primary text-white shadow-soft'
-                      : isDark
-                        ? 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+                      ? 'bg-[#F8F3EE] text-[#6D214F] shadow-soft'
+                      : 'text-white/90 hover:bg-white/12 hover:text-white',
                   )}
                 >
                   {item.label}
@@ -54,28 +50,28 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className="flex-1">
-          <header className={cn('sticky top-0 z-20 border-b backdrop-blur', isDark ? 'border-slate-800 bg-slate-950/85' : 'border-slate-200 bg-white/85')}>
+          <header className="sticky top-0 z-20 border-b border-[#E8DDD5] bg-white/90 backdrop-blur">
             <div className="flex items-center justify-between px-4 py-4 lg:px-8">
               <div className="flex items-center gap-3">
-                <div className={cn('rounded-xl p-2 lg:hidden', isDark ? 'bg-slate-800' : 'bg-slate-100')}>
-                  <span className="text-sm font-bold text-primary">A</span>
+                <div className="rounded-2xl bg-[#F8F3EE] p-2 lg:hidden">
+                  <span className="text-sm font-bold text-[#6D214F]">A</span>
                 </div>
                 <div>
-                  <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>Dr. Meera Sharma</p>
-                  <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>Thursday, 16 July 2026</p>
+                  <p className="text-lg font-semibold text-[#6D214F]">Dr. Meera Sharma</p>
+                  <p className="text-sm text-[#6E6E6E]">Thursday, 16 July 2026</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className={cn('hidden items-center rounded-xl border px-3 py-2 md:flex', isDark ? 'border-slate-800 bg-slate-900' : 'border-slate-200 bg-slate-50')}>
-                  <Search className={cn('mr-2 h-4 w-4', isDark ? 'text-slate-400' : 'text-slate-400')} />
-                  <input className={cn('bg-transparent text-sm outline-none', isDark ? 'text-slate-100 placeholder:text-slate-500' : 'text-slate-900')} placeholder="Search" />
+                <div className="hidden items-center rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] px-3 py-2 md:flex">
+                  <Search className="mr-2 h-4 w-4 text-[#6E6E6E]" />
+                  <input className="bg-transparent text-sm text-[#2F2F2F] outline-none placeholder:text-[#6E6E6E]" placeholder="Search" />
                 </div>
 
                 <div className="relative">
                   <button
                     onClick={() => setShowNotifications((current) => !current)}
-                    className={cn('rounded-xl border p-2 transition', isDark ? 'border-slate-800 bg-slate-900 text-slate-200' : 'border-slate-200 bg-white text-slate-700 hover:border-primary hover:text-primary')}
+                    className="rounded-2xl border border-[#E8DDD5] bg-white p-2 text-[#6D214F] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft"
                   >
                     <Bell className="h-4 w-4" />
                   </button>
@@ -88,7 +84,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
 
                 <button
                   onClick={() => setIsDark((current) => !current)}
-                  className={cn('rounded-xl border p-2 transition', isDark ? 'border-slate-800 bg-slate-900 text-slate-200' : 'border-slate-200 bg-white text-slate-700 hover:border-primary hover:text-primary')}
+                  className="rounded-2xl border border-[#E8DDD5] bg-white p-2 text-[#6D214F] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft"
                 >
                   {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 </button>

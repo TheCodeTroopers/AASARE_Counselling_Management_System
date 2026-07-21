@@ -13,26 +13,26 @@ export function SettingsPanel() {
   });
 
   if (isLoading) return <LoadingSkeleton rows={3} />;
-  if (isError) return <div className="glass-card rounded-2xl p-5 text-sm text-rose-600">Unable to load settings.</div>;
+  if (isError) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load settings.</div>;
 
   return (
     <SectionCard title="Settings" subtitle="Security and experience preferences for the counsellor panel.">
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="font-medium">Dark Mode</p>
-          <p className="text-sm text-slate-500">Enabled: {data?.darkMode ? 'Yes' : 'No'}</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="font-medium text-[#6D214F]">Dark Mode</p>
+          <p className="text-sm text-[#6E6E6E]">Enabled: {data?.darkMode ? 'Yes' : 'No'}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="font-medium">Notification Preferences</p>
-          <p className="text-sm text-slate-500">{data?.notificationPreferences.join(', ')}</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="font-medium text-[#6D214F]">Notification Preferences</p>
+          <p className="text-sm text-[#6E6E6E]">{data?.notificationPreferences.join(', ')}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="font-medium">Language</p>
-          <p className="text-sm text-slate-500">{data?.language}</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="font-medium text-[#6D214F]">Language</p>
+          <p className="text-sm text-[#6E6E6E]">{data?.language}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="font-medium">Security</p>
-          <p className="text-sm text-slate-500">{data?.security}</p>
+        <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card">
+          <p className="font-medium text-[#6D214F]">Security</p>
+          <p className="text-sm text-[#6E6E6E]">{data?.security}</p>
         </div>
       </div>
       <div className="mt-4 flex gap-2">

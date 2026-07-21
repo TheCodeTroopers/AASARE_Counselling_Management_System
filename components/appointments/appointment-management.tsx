@@ -49,7 +49,7 @@ export function AppointmentManagement() {
   };
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
-  if (isError) return <div className="glass-card rounded-2xl p-5 text-sm text-rose-600">Unable to load appointments.</div>;
+  if (isError) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load appointments.</div>;
 
   return (
     <div className="space-y-4">
@@ -63,8 +63,8 @@ export function AppointmentManagement() {
               <button
                 key={tab}
                 onClick={() => setStatusFilter(tab)}
-                className={`rounded-xl px-3 py-2 text-sm font-medium ${
-                  statusFilter === tab ? 'bg-primary text-white' : 'bg-slate-100 text-slate-700'
+                className={`rounded-2xl px-3 py-2 text-sm font-medium transition-all duration-300 ${
+                  statusFilter === tab ? 'bg-[#6D214F] text-white shadow-sm' : 'bg-[#F8F3EE] text-[#6E6E6E] hover:text-[#6D214F]'
                 }`}
               >
                 {tab}
@@ -75,7 +75,7 @@ export function AppointmentManagement() {
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {filteredAppointments.map((item) => (
-            <div key={item.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div key={item.id} className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1">
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold text-slate-900">{item.studentName}</p>
@@ -101,7 +101,7 @@ export function AppointmentManagement() {
         </div>
 
         {filteredAppointments.length === 0 ? (
-          <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-sm text-slate-500">
+          <div className="mt-4 rounded-[20px] border border-dashed border-[#E8DDD5] bg-[#F8F3EE] p-8 text-center text-sm text-[#6E6E6E]">
             No appointments found for the selected filter.
           </div>
         ) : null}
@@ -121,7 +121,7 @@ export function AppointmentManagement() {
             value={rejectionReason}
             onChange={(event) => setRejectionReason(event.target.value)}
             placeholder="Reason for rejection"
-            className="min-h-28 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-primary"
+            className="min-h-28 w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
           />
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setSelectedAppointment(null)}>Cancel</Button>
