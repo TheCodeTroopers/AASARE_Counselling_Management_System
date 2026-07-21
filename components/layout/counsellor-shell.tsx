@@ -61,8 +61,8 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                   <span className="text-sm font-bold text-primary">A</span>
                 </div>
                 <div>
-                  <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>Dr. Meera Sharma</p>
-                  <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>Thursday, 16 July 2026</p>
+                  <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>Dr. Deepika B V</p>
+                  <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>Thursday, 21 July 2026</p>
                 </div>
               </div>
 

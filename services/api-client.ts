@@ -29,11 +29,11 @@ const mockApiStore: Record<string, unknown> = {
   '/cases': mockCases,
   '/drafts': mockDrafts,
   '/profile': {
-    name: 'Dr. Meera Sharma',
-    department: 'Counselling Cell',
-    designation: 'Senior Counsellor',
-    email: 'meera@aasare.edu',
-    phone: '+91 98765 43210',
+    name: 'Dr. Deepika B V',
+    department: 'Artificial Intelligence & Data Science',
+    designation: 'Counselling Cell Coordinator',
+    email: 'deepika.bv@sode-edu.in',
+    phone: '+91 98450 12346',
   },
   '/notifications': [
     { id: '1', title: 'Appointment approved', meta: '2 mins ago' },
