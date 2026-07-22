@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
-import logoAsset from "@/assets/smvitm-logo.png.asset.json";
+import logo from "@/assets/smvitm-logo.jpg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -36,7 +36,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={logoAsset.url}
+            src={logo}
             alt="SMVITM"
             className="h-11 w-11 object-contain"
           />

@@ -1,98 +1,126 @@
-import { counsellors } from "./counsellors";
+import { supabase } from "@/integrations/supabase/client";
 
 export type AppointmentStatus =
-  | "Pending"
-  | "Approved"
-  | "Rejected"
-  | "Completed"
-  | "Cancelled";
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "completed"
+  | "cancelled";
 
 export type Appointment = {
   id: string;
   counsellorId: string;
-  date: string; // ISO date
+  date: string;
   time: string;
   reason: string;
   status: AppointmentStatus;
-  rejectionReason?: string;
+  rejectionReason?: string | null;
   createdAt: string;
 };
 
-const KEY = "aasare.appointments.v1";
-
-function seed(): Appointment[] {
-  const today = new Date();
-  const iso = (offset: number) => {
-    const d = new Date(today);
-    d.setDate(d.getDate() + offset);
-    return d.toISOString().slice(0, 10);
+function fromRow(r: {
+  id: string;
+  counsellor_id: string;
+  date: string;
+  slot_time: string;
+  reason: string;
+  status: AppointmentStatus;
+  rejection_reason: string | null;
+  created_at: string;
+}): Appointment {
+  return {
+    id: r.id,
+    counsellorId: r.counsellor_id,
+    date: r.date,
+    time: r.slot_time,
+    reason: r.reason,
+    status: r.status,
+    rejectionReason: r.rejection_reason,
+    createdAt: r.created_at,
   };
-  return [
-    {
-      id: "seed-1",
-      counsellorId: counsellors[0].id,
-      date: iso(2),
-      time: "10:30",
-      reason: "Feeling overwhelmed with coursework and would like to talk.",
-      status: "Approved",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "seed-2",
-      counsellorId: counsellors[4].id,
-      date: iso(-3),
-      time: "15:00",
-      reason: "Placement anxiety",
-      status: "Completed",
-      createdAt: new Date().toISOString(),
-    },
-  ];
 }
 
-export function loadAppointments(): Appointment[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) {
-      const s = seed();
-      window.localStorage.setItem(KEY, JSON.stringify(s));
-      return s;
-    }
-    return JSON.parse(raw) as Appointment[];
-  } catch {
-    return [];
+export async function fetchMyAppointments(): Promise<Appointment[]> {
+  const { data, error } = await supabase
+    .from("appointments")
+    .select("id, counsellor_id, date, slot_time, reason, status, rejection_reason, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(fromRow);
+}
+
+export async function fetchBookedSlots(counsellorId: string, dateISO: string): Promise<string[]> {
+  const { data, error } = await supabase.rpc("get_booked_slots", {
+    _counsellor_id: counsellorId,
+    _date: dateISO,
+  });
+  if (error) throw error;
+  return (data ?? []).map((r: { slot_time: string }) => r.slot_time);
+}
+
+export type CreateAppointmentInput = {
+  counsellorId: string;
+  date: string;
+  time: string;
+  reason: string;
+};
+
+export type CreateAppointmentResult =
+  | { ok: true; appointment: Appointment }
+  | { ok: false; error: "double_booking" | "unknown"; message: string };
+
+export async function createAppointment(
+  input: CreateAppointmentInput,
+): Promise<CreateAppointmentResult> {
+  const { data: userData, error: userErr } = await supabase.auth.getUser();
+  if (userErr || !userData.user) {
+    return { ok: false, error: "unknown", message: "Please sign in to book an appointment." };
   }
+  const { data, error } = await supabase
+    .from("appointments")
+    .insert({
+      user_id: userData.user.id,
+      counsellor_id: input.counsellorId,
+      date: input.date,
+      slot_time: input.time,
+      reason: input.reason,
+    })
+    .select("id, counsellor_id, date, slot_time, reason, status, rejection_reason, created_at")
+    .single();
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        ok: false,
+        error: "double_booking",
+        message:
+          "This slot is already booked with this counsellor. It's awaiting their approval — please pick a different time.",
+      };
+    }
+    return { ok: false, error: "unknown", message: error.message };
+  }
+  return { ok: true, appointment: fromRow(data) };
 }
 
-export function saveAppointments(list: Appointment[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event("aasare.appointments.changed"));
+export async function cancelAppointment(id: string) {
+  const { error } = await supabase
+    .from("appointments")
+    .update({ status: "cancelled" })
+    .eq("id", id);
+  if (error) throw error;
 }
 
-export function addAppointment(a: Omit<Appointment, "id" | "status" | "createdAt">): Appointment {
-  const list = loadAppointments();
-  const record: Appointment = {
-    ...a,
-    id: `apt-${Date.now()}`,
-    status: "Pending",
-    createdAt: new Date().toISOString(),
-  };
-  saveAppointments([record, ...list]);
-  return record;
-}
-
-export function cancelAppointment(id: string) {
-  const list = loadAppointments().map((a) =>
-    a.id === id ? { ...a, status: "Cancelled" as AppointmentStatus } : a,
-  );
-  saveAppointments(list);
-}
+export const statusLabel: Record<AppointmentStatus, string> = {
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
 
 export const statusStyles: Record<AppointmentStatus, string> = {
-  Pending: "bg-amber-100 text-amber-900 border-amber-300",
-  Approved: "bg-emerald-100 text-emerald-900 border-emerald-300",
-  Rejected: "bg-rose-100 text-rose-900 border-rose-300",
-  Completed: "bg-stone-200 text-stone-800 border-stone-300",
-  Cancelled: "bg-stone-100 text-stone-600 border-stone-300",
+  pending: "bg-amber-100 text-amber-900 border-amber-300",
+  approved: "bg-emerald-100 text-emerald-900 border-emerald-300",
+  rejected: "bg-rose-100 text-rose-900 border-rose-300",
+  completed: "bg-stone-200 text-stone-800 border-stone-300",
+  cancelled: "bg-stone-100 text-stone-600 border-stone-300",
 };

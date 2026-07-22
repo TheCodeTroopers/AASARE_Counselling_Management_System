@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import logoAsset from "@/assets/smvitm-logo.png.asset.json";
+import logo from "@/assets/smvitm-logo.jpg";
 
 export function SiteFooter() {
   return (
@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4 md:px-8">
         <div className="md:col-span-2">
           <div className="flex items-center gap-3">
-            <img src={logoAsset.url} alt="SMVITM" className="h-12 w-12 object-contain" />
+            <img src={logo} alt="SMVITM" className="h-12 w-12 object-contain" />
             <div>
               <p className="font-display text-2xl font-semibold text-primary">AASARE</p>
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">

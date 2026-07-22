@@ -5,7 +5,6 @@ import { ArrowRight, Loader2, Lock, Mail, ShieldCheck, User } from "lucide-react
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 
@@ -107,19 +106,20 @@ function AuthPage() {
   }
 
   async function handleGoogle() {
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setBusy(false);
-      toast.error(result.error.message || "Google sign-in failed");
-      return;
-    }
-    if (result.redirected) return;
-    router.invalidate();
-    navigate({ to: "/" });
+  setBusy(true);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/`,
+    },
+  });
+
+  if (error) {
+    setBusy(false);
+    toast.error(error.message);
   }
+}
 
   return (
     <div className="min-h-screen">
@@ -230,17 +230,17 @@ function AuthPage() {
                       required
                       value={suName}
                       onChange={(e) => setSuName(e.target.value)}
-                      placeholder="e.g. Ananya Rao"
+                      placeholder="YOUR NAME"
                       className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>
-                  <Field label="USN / Roll number">
+                  <Field label="USN">
                     <input
                       type="text"
                       required
                       value={suUsn}
                       onChange={(e) => setSuUsn(e.target.value)}
-                      placeholder="e.g. 4SM22CS001"
+                      placeholder="YOUR USN"
                       className="w-full bg-transparent text-sm uppercase outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>

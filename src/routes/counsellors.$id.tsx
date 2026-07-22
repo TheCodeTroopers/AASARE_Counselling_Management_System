@@ -1,12 +1,12 @@
 import { Link, createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
-import { useMemo, useState } from "react";
+import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
 import { getCounsellor, getSlotsForCounsellor } from "@/lib/counsellors";
-import { addAppointment } from "@/lib/appointments";
+import { createAppointment, fetchBookedSlots } from "@/lib/appointments";
 
 export const Route = createFileRoute("/counsellors/$id")({
   loader: ({ params }) => {
@@ -62,10 +62,34 @@ function CounsellorDetail() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [bookedTimes, setBookedTimes] = useState<string[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(true);
 
-  const slots = getSlotsForCounsellor(counsellor.id, selectedDate);
+  const localSlots = getSlotsForCounsellor(counsellor.id, selectedDate);
+  const slots = localSlots.map((s) => ({
+    time: s.time,
+    booked: s.booked || bookedTimes.includes(s.time),
+  }));
 
-  const onSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    let cancelled = false;
+    setSlotsLoading(true);
+    fetchBookedSlots(counsellor.id, selectedDate)
+      .then((list) => {
+        if (!cancelled) setBookedTimes(list);
+      })
+      .catch(() => {
+        if (!cancelled) setBookedTimes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setSlotsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [counsellor.id, selectedDate]);
+
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTime) {
       toast.error("Please pick a time slot.");
@@ -76,16 +100,26 @@ function CounsellorDetail() {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      addAppointment({
-        counsellorId: counsellor.id,
-        date: selectedDate,
-        time: selectedTime,
-        reason: reason.trim(),
-      });
-      toast.success("Request sent. You'll get an update soon.");
-      navigate({ to: "/appointments" });
-    }, 450);
+    const result = await createAppointment({
+      counsellorId: counsellor.id,
+      date: selectedDate,
+      time: selectedTime,
+      reason: reason.trim(),
+    });
+    setSubmitting(false);
+    if (!result.ok) {
+      if (result.error === "double_booking") {
+        toast.error(result.message, { duration: 6000 });
+        // Refresh booked slots so the taken time is greyed out immediately.
+        fetchBookedSlots(counsellor.id, selectedDate).then(setBookedTimes).catch(() => {});
+        setSelectedTime(null);
+      } else {
+        toast.error(result.message);
+      }
+      return;
+    }
+    toast.success("Request sent. Awaiting the counsellor's approval.");
+    navigate({ to: "/appointments" });
   };
 
   return (
@@ -179,16 +213,21 @@ function CounsellorDetail() {
               </div>
 
               <div className="mt-6">
-                <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">Time slot</p>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Time slot</p>
+                  {slotsLoading && <span className="text-[10px] text-muted-foreground">checking availability…</span>}
+                </div>
                 <div className="grid grid-cols-3 gap-2">
                   {slots.map((s: { time: string; booked: boolean }) => {
                     const active = s.time === selectedTime;
+                    const pendingApproval = bookedTimes.includes(s.time);
                     return (
                       <button
                         type="button"
                         key={s.time}
                         disabled={s.booked}
                         onClick={() => setSelectedTime(s.time)}
+                        title={pendingApproval ? "Already booked · awaiting counsellor's approval" : undefined}
                         className={
                           "rounded-xl border py-2.5 text-sm font-medium transition " +
                           (s.booked
@@ -203,6 +242,12 @@ function CounsellorDetail() {
                     );
                   })}
                 </div>
+                {bookedTimes.length > 0 && (
+                  <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                    <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-600" />
+                    Struck-through times are already booked and awaiting the counsellor's approval — please pick a different slot.
+                  </p>
+                )}
               </div>
 
               <div className="mt-6">

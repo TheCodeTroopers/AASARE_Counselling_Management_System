@@ -7,11 +7,13 @@ import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
 import {
   cancelAppointment,
-  loadAppointments,
+  fetchMyAppointments,
+  statusLabel,
   statusStyles,
   type Appointment,
 } from "@/lib/appointments";
 import { getCounsellor } from "@/lib/counsellors";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/appointments")({
   component: AppointmentsPage,
@@ -28,15 +30,37 @@ function AppointmentsPage() {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    setItems(loadAppointments());
-    setHydrated(true);
-    const handler = () => setItems(loadAppointments());
-    window.addEventListener("aasare.appointments.changed", handler);
-    return () => window.removeEventListener("aasare.appointments.changed", handler);
+    let mounted = true;
+    const load = async () => {
+      try {
+        const list = await fetchMyAppointments();
+        if (mounted) setItems(list);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (mounted) setHydrated(true);
+      }
+    };
+    load();
+    const { data: sub } = supabase.auth.onAuthStateChange(() => load());
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
-  const upcoming = items.filter((a) => ["Pending", "Approved"].includes(a.status));
-  const past = items.filter((a) => !["Pending", "Approved"].includes(a.status));
+  const upcoming = items.filter((a) => a.status === "pending" || a.status === "approved");
+  const past = items.filter((a) => a.status !== "pending" && a.status !== "approved");
+
+  const onCancel = async (id: string) => {
+    try {
+      await cancelAppointment(id);
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "cancelled" } : a)));
+      toast("Appointment cancelled.");
+    } catch (e) {
+      toast.error((e as Error).message || "Couldn't cancel");
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -56,7 +80,7 @@ function AppointmentsPage() {
           <EmptyState />
         ) : (
           <div className="mt-10 space-y-12">
-            <Section title="Upcoming & pending" list={upcoming} onCancel={(id) => { cancelAppointment(id); toast("Appointment cancelled."); }} />
+            <Section title="Upcoming & pending" list={upcoming} onCancel={onCancel} />
             <Section title="Past" list={past} muted />
           </div>
         )}
@@ -119,7 +143,7 @@ function AppointmentCard({
 }) {
   const c = getCounsellor(a.counsellorId);
   if (!c) return null;
-  const canCancel = a.status === "Pending" || a.status === "Approved";
+  const canCancel = a.status === "pending" || a.status === "approved";
   const dateLabel = new Date(a.date).toLocaleDateString(undefined, {
     weekday: "long", month: "long", day: "numeric",
   });
@@ -145,7 +169,7 @@ function AppointmentCard({
               statusStyles[a.status]
             }
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-current" /> {a.status}
+            <span className="h-1.5 w-1.5 rounded-full bg-current" /> {statusLabel[a.status]}
           </span>
           <p className="mt-2 text-sm font-medium text-foreground">
             {dateLabel} · <span className="text-primary">{a.time}</span>
