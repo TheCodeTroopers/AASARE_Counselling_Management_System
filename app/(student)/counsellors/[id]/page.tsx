@@ -110,7 +110,7 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
       return;
     }
     toast.success("Request sent. Awaiting the counsellor's approval.");
-    router.push("/appointments");
+    router.push("/my-appointments");
   };
 
   return (
@@ -264,7 +264,7 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
                 {counsellor.available ? (submitting ? "Sending…" : "Send request") : "Currently unavailable"}
               </button>
               <p className="mt-3 text-center text-[11px] text-muted-foreground">
-                You'll see it under <Link href="/appointments" className="underline">My Appointments</Link> once submitted.
+                You'll see it under <Link href="/my-appointments" className="underline">My Appointments</Link> once submitted.
               </p>
             </form>
           </section>

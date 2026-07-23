@@ -27,7 +27,7 @@ export function SiteFooter() {
           <p className="text-sm font-semibold text-foreground">Navigate</p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
             <li><Link href="/counsellors" className="hover:text-primary">Counsellor Directory</Link></li>
-            <li><Link href="/appointments" className="hover:text-primary">My Appointments</Link></li>
+            <li><Link href="/my-appointments" className="hover:text-primary">My Appointments</Link></li>
             <li><Link href="/about" className="hover:text-primary">About AASARE</Link></li>
           </ul>
         </div>

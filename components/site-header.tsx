@@ -11,7 +11,7 @@ import { toast } from "sonner";
 const nav = [
   { href: "/", label: "Home" },
   { href: "/counsellors", label: "Counsellors" },
-  { href: "/appointments", label: "My Appointments" },
+  { href: "/my-appointments", label: "My Appointments" },
   { href: "/about", label: "About AASARE" },
 ];
 
@@ -82,7 +82,7 @@ export function SiteHeader() {
           {user ? (
             <div className="ml-3 flex items-center gap-2">
               <Link
-                href="/appointments"
+                href="/my-appointments"
                 className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
                 title={displayName}
               >
