@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Bell, LayoutGrid, Moon, Search, Sun } from 'lucide-react';
 import { COUNSELLOR_NAV_ITEMS } from '@/constants/navigation';
@@ -10,6 +10,7 @@ import { NotificationDrawer } from '@/components/notifications/notification-draw
 
 export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isDark, setIsDark] = useState(false);
 
@@ -30,6 +31,23 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
           <nav className="space-y-2">
             {COUNSELLOR_NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href || (item.href !== '#' && pathname.startsWith(item.href));
+
+              if (item.label === 'Logout') {
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => {
+                      router.push('/login');
+                    }}
+                    className={cn(
+                      'flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-300 cursor-pointer',
+                      'text-white/90 hover:bg-white/12 hover:text-white',
+                    )}
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
 
               return (
                 <Link
