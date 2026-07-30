@@ -1,4 +1,6 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { CalendarClock, MessageSquare, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -14,16 +16,6 @@ import {
 } from "@/lib/appointments";
 import { getCounsellor } from "@/lib/counsellors";
 import { supabase } from "@/integrations/supabase/client";
-
-export const Route = createFileRoute("/appointments")({
-  component: AppointmentsPage,
-  head: () => ({
-    meta: [
-      { title: "My Appointments — AASARE" },
-      { name: "description", content: "Track the status of your counselling appointments at SMVITM." },
-    ],
-  }),
-});
 
 function AppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
@@ -67,7 +59,9 @@ function AppointmentsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-5 py-14 md:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Your sessions</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+            Your sessions
+          </p>
           <h1 className="mt-2 font-display text-5xl text-primary md:text-6xl">My appointments</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Follow your requests as they move through pending, approved, completed, or cancelled.
@@ -90,6 +84,8 @@ function AppointmentsPage() {
   );
 }
 
+export default AppointmentsPage;
+
 function EmptyState() {
   return (
     <div className="mt-12 rounded-3xl border border-dashed border-border bg-card p-14 text-center">
@@ -99,7 +95,7 @@ function EmptyState() {
         When you book a session, you'll see it appear here with live status updates.
       </p>
       <Link
-        to="/counsellors"
+        href="/counsellors"
         className="mt-6 inline-flex rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-md shadow-primary/20"
       >
         Find a counsellor
@@ -145,7 +141,9 @@ function AppointmentCard({
   if (!c) return null;
   const canCancel = a.status === "pending" || a.status === "approved";
   const dateLabel = new Date(a.date).toLocaleDateString(undefined, {
-    weekday: "long", month: "long", day: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   });
   return (
     <article

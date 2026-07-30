@@ -1,21 +1,17 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { ArrowRight, CalendarClock, Lock, HeartHandshake, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, CalendarClock, HeartHandshake, Lock, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
 import { counsellors } from "@/lib/counsellors";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-function Index() {
+export default function HomePage() {
   const featured = counsellors.slice(0, 4);
+
   return (
     <div className="min-h-screen">
       <SiteHeader />
       <main>
-        {/* Hero */}
         <section className="relative overflow-hidden bg-radial-warm">
           <div className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(1000px_500px_at_10%_-20%,oklch(0.9_0.06_75/0.5),transparent),radial-gradient(800px_400px_at_100%_0%,oklch(0.55_0.12_15/0.15),transparent)]" />
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 py-20 md:grid-cols-[1.15fr_1fr] md:px-8 md:py-28">
@@ -24,50 +20,56 @@ function Index() {
                 <Sparkles className="h-3.5 w-3.5" /> A safe space at SMVITM
               </span>
               <h1 className="mt-6 text-balance font-display text-5xl leading-[1.05] text-primary md:text-6xl lg:text-7xl">
-                A quiet room, <em className="font-normal italic text-gold">whenever</em> you need one.
+                A quiet room, <em className="font-normal italic text-gold">whenever</em> you need
+                one.
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-                AASARE is the Institutional Counselling Cell of SMVITM. Browse our
-                faculty counsellors, view open slots, and book a private
-                appointment — all in a few taps. Whatever you're carrying, you
-                don't have to carry it alone.
+                AASARE is the Institutional Counselling Cell of SMVITM. Browse our faculty
+                counsellors, view open slots, and book a private appointment — all in a few taps.
+                Whatever you're carrying, you don't have to carry it alone.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Link
-                  to="/counsellors"
+                  href="/counsellors"
                   className="group inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 hover:shadow-xl"
                 >
                   Find a counsellor
                   <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
                 </Link>
                 <Link
-                  to="/about"
+                  href="/about"
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-medium text-foreground transition hover:border-primary/40"
                 >
                   How it works
                 </Link>
               </div>
               <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2"><Lock className="h-4 w-4 text-gold" /> Confidential</div>
-                <div className="flex items-center gap-2"><HeartHandshake className="h-4 w-4 text-gold" /> Faculty-led</div>
-                <div className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-gold" /> Same-week slots</div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-gold" /> Confidential
+                </div>
+                <div className="flex items-center gap-2">
+                  <HeartHandshake className="h-4 w-4 text-gold" /> Faculty-led
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4 text-gold" /> Same-week slots
+                </div>
               </div>
             </div>
 
-            {/* Hero card stack */}
             <div className="relative">
               <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-br from-gold/25 via-transparent to-primary/15 blur-2xl" />
               <div className="relative rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-primary/10">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today's availability</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Today's availability
+                  </p>
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_oklch(0.9_0.15_150/0.35)]" />
                 </div>
                 <div className="mt-5 space-y-3">
                   {featured.map((c) => (
                     <Link
                       key={c.id}
-                      to="/counsellors/$id"
-                      params={{ id: c.id }}
+                      href={`/counsellors/${c.id}`}
                       className="flex items-center gap-3 rounded-xl border border-transparent p-2 transition hover:border-border hover:bg-secondary/50"
                     >
                       <CounsellorAvatar counsellor={c} size="sm" />
@@ -89,7 +91,7 @@ function Index() {
                   ))}
                 </div>
                 <Link
-                  to="/counsellors"
+                  href="/counsellors"
                   className="mt-5 flex items-center justify-between rounded-xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/10"
                 >
                   See all {counsellors.length} counsellors
@@ -100,7 +102,6 @@ function Index() {
           </div>
         </section>
 
-        {/* Value pillars */}
         <section className="mx-auto max-w-7xl px-5 py-20 md:px-8">
           <div className="grid gap-6 md:grid-cols-3">
             {[
@@ -133,18 +134,19 @@ function Index() {
           </div>
         </section>
 
-        {/* Closing */}
         <section className="mx-auto max-w-7xl px-5 pb-24 md:px-8">
           <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-primary-foreground shadow-2xl shadow-primary/20 md:px-16">
             <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/30 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
             <div className="relative max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ready when you are</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
+                Ready when you are
+              </p>
               <h2 className="mt-4 font-display text-4xl leading-tight md:text-5xl">
                 Reaching out is the hardest step. We'll take it with you.
               </h2>
               <Link
-                to="/counsellors"
+                href="/counsellors"
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition hover:-translate-y-0.5"
               >
                 Browse counsellors <ArrowRight className="h-4 w-4" />

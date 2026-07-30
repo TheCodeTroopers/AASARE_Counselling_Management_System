@@ -1,4 +1,6 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
@@ -6,17 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
 import { counsellors } from "@/lib/counsellors";
 
-export const Route = createFileRoute("/counsellors/")({
-  component: CounsellorsIndex,
-  head: () => ({
-    meta: [
-      { title: "Counsellor Directory — AASARE" },
-      { name: "description", content: "Browse trained faculty counsellors at SMVITM. Filter by department and see live availability." },
-    ],
-  }),
-});
-
-function CounsellorsIndex() {
+export default function CounsellorsPage() {
   const [q, setQ] = useState("");
   const [dept, setDept] = useState<string>("All");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
@@ -48,12 +40,11 @@ function CounsellorsIndex() {
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Directory</p>
           <h1 className="font-display text-5xl text-primary md:text-6xl">Meet our counsellors</h1>
           <p className="max-w-2xl text-base text-muted-foreground">
-            Nine faculty counsellors from across SMVITM departments. Pick anyone
-            you feel comfortable with — sessions are entirely private.
+            Nine faculty counsellors from across SMVITM departments. Pick anyone you feel
+            comfortable with — sessions are entirely private.
           </p>
         </div>
 
-        {/* Controls */}
         <div className="mt-10 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 md:flex-row md:items-center md:gap-3">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -72,7 +63,9 @@ function CounsellorsIndex() {
               className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary"
             >
               {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
@@ -87,13 +80,11 @@ function CounsellorsIndex() {
           </div>
         </div>
 
-        {/* Grid */}
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
           {filtered.map((c) => (
             <Link
               key={c.id}
-              to="/counsellors/$id"
-              params={{ id: c.id }}
+              href={`/counsellors/${c.id}`}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
             >
               {c.isCoordinator && (
@@ -108,7 +99,10 @@ function CounsellorsIndex() {
 
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {c.specialties.map((s) => (
-                  <span key={s} className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground">
+                  <span
+                    key={s}
+                    className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground"
+                  >
                     {s}
                   </span>
                 ))}
@@ -129,7 +123,9 @@ function CounsellorsIndex() {
                   />
                   {c.available ? "Accepting requests" : "Currently unavailable"}
                 </span>
-                <span className="font-medium text-primary opacity-0 transition group-hover:opacity-100">View →</span>
+                <span className="font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                  View →
+                </span>
               </div>
             </Link>
           ))}

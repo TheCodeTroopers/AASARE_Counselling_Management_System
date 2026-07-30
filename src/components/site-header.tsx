@@ -1,4 +1,7 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/smvitm-logo.jpg";
@@ -14,7 +17,7 @@ const nav = [
 ];
 
 export function SiteHeader() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const displayName =
@@ -34,12 +37,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
-        <Link to="/" className="flex items-center gap-3">
-          <img
-            src={logo}
-            alt="SMVITM"
-            className="h-11 w-11 object-contain"
-          />
+        <Link href="/" className="flex items-center gap-3">
+          <img src={logo.src} alt="SMVITM" className="h-11 w-11 object-contain" />
           <div className="flex flex-col leading-tight">
             <span className="font-display text-xl font-semibold tracking-tight text-primary">
               AASARE
@@ -52,19 +51,14 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((item) => {
-            const active =
-              item.to === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.to);
+            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
-                to={item.to}
+                href={item.to}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -77,7 +71,7 @@ export function SiteHeader() {
           {user ? (
             <div className="ml-3 flex items-center gap-2">
               <Link
-                to="/appointments"
+                href="/appointments"
                 className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
                 title={displayName}
               >
@@ -99,7 +93,7 @@ export function SiteHeader() {
             </div>
           ) : (
             <Link
-              to="/auth"
+              href="/auth"
               className="ml-3 inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-95"
             >
               Sign in
@@ -122,7 +116,7 @@ export function SiteHeader() {
             {nav.map((item) => (
               <Link
                 key={item.to}
-                to={item.to}
+                href={item.to}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
               >
@@ -142,7 +136,7 @@ export function SiteHeader() {
               </button>
             ) : (
               <Link
-                to="/auth"
+                href="/auth"
                 onClick={() => setOpen(false)}
                 className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
               >

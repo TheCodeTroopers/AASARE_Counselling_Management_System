@@ -1,5 +1,8 @@
-import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, Lock, Mail, ShieldCheck, User } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
@@ -7,16 +10,6 @@ import { SiteFooter } from "@/components/site-footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-
-export const Route = createFileRoute("/auth")({
-  head: () => ({
-    meta: [
-      { title: "Sign in · AASARE — SMVITM" },
-      { name: "description", content: "Sign in or create your student account to book a confidential counselling session with AASARE at SMVITM." },
-    ],
-  }),
-  component: AuthPage,
-});
 
 const DEPARTMENTS = [
   "Computer Science & Engineering",
@@ -32,18 +25,13 @@ const DEPARTMENTS = [
 
 const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "PG / MBA"];
 
-function AuthPage() {
-  const navigate = useNavigate();
+export default function AuthPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
-
-  // signin fields
   const [siEmail, setSiEmail] = useState("");
   const [siPassword, setSiPassword] = useState("");
-
-  // signup fields
   const [suName, setSuName] = useState("");
   const [suUsn, setSuUsn] = useState("");
   const [suDept, setSuDept] = useState(DEPARTMENTS[0]);
@@ -51,14 +39,13 @@ function AuthPage() {
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
 
-  // If already signed in, bounce home.
   useEffect(() => {
     if (!authLoading && user) {
-      navigate({ to: "/" });
+      router.replace("/");
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, router]);
 
-  async function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({
@@ -71,55 +58,53 @@ function AuthPage() {
       return;
     }
     toast.success("Welcome back");
-    router.invalidate();
-    navigate({ to: "/" });
+    router.replace("/");
   }
 
-  async function handleSignUp(e: React.FormEvent) {
+  async function handleSignUp(e: FormEvent) {
     e.preventDefault();
     if (!suName.trim() || !suUsn.trim()) {
       toast.error("Please fill in your name and USN");
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
-      email: suEmail.trim(),
-      password: suPassword,
-      options: {
-        emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          full_name: suName.trim(),
-          usn: suUsn.trim().toUpperCase(),
-          department: suDept,
-          year: suYear,
-        },
-      },
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(error.message || "Couldn't create your account");
-      return;
-    }
-    toast.success("Account created — welcome to AASARE");
-    router.invalidate();
-    navigate({ to: "/" });
+    const { data, error } = await supabase.auth.signUp({
+  email: suEmail.trim(),
+  password: suPassword,
+  options: {
+    emailRedirectTo: `${window.location.origin}/`,
+    data: {
+      full_name: suName.trim(),
+      usn: suUsn.trim().toUpperCase(),
+      department: suDept,
+      year: suYear,
+    },
+  },
+});
+
+setBusy(false);
+
+if (error) {
+  console.error(error);
+  toast.error(error.message || "Couldn't create your account");
+  return;
+}
+
+toast.success("Account created — welcome to AASARE");
+router.replace("/");
   }
 
   async function handleGoogle() {
-  setBusy(true);
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}/`,
-    },
-  });
-
-  if (error) {
-    setBusy(false);
-    toast.error(error.message);
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/` },
+    });
+    if (error) {
+      setBusy(false);
+      toast.error(error.message);
+    }
   }
-}
 
   return (
     <div className="min-h-screen">
@@ -127,7 +112,6 @@ function AuthPage() {
       <main className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(900px_500px_at_15%_-10%,oklch(0.9_0.06_75/0.55),transparent),radial-gradient(700px_400px_at_100%_10%,oklch(0.55_0.12_15/0.14),transparent)]" />
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-[1.05fr_1fr] md:px-8 md:py-24">
-          {/* Left column: reassurance */}
           <div className="hidden md:block">
             <span className="inline-flex items-center gap-2 rounded-full border border-gold/40 bg-gold/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-primary">
               <ShieldCheck className="h-3.5 w-3.5" /> Private & confidential
@@ -136,8 +120,8 @@ function AuthPage() {
               Sign in to your <em className="font-normal italic text-gold">AASARE</em> space.
             </h1>
             <p className="mt-5 max-w-md text-lg leading-relaxed text-muted-foreground">
-              Your account is used only to book appointments and track your own sessions.
-              Faculty counsellors see only what you choose to share with them.
+              Your account is used only to book appointments and track your own sessions. Faculty
+              counsellors see only what you choose to share with them.
             </p>
             <ul className="mt-8 space-y-4 text-sm">
               {[
@@ -153,7 +137,6 @@ function AuthPage() {
             </ul>
           </div>
 
-          {/* Right column: card */}
           <div className="mx-auto w-full max-w-md">
             <div className="rounded-3xl border border-border/70 bg-card/90 p-6 shadow-xl backdrop-blur md:p-8">
               <div className="mb-6 flex gap-1 rounded-full bg-secondary p-1">
@@ -217,7 +200,11 @@ function AuthPage() {
                   <SubmitButton busy={busy}>Sign in</SubmitButton>
                   <p className="text-center text-xs text-muted-foreground">
                     New here?{" "}
-                    <button type="button" onClick={() => setMode("signup")} className="font-medium text-primary underline-offset-2 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => setMode("signup")}
+                      className="font-medium text-primary underline-offset-2 hover:underline"
+                    >
                       Create an account
                     </button>
                   </p>
@@ -252,7 +239,9 @@ function AuthPage() {
                         className="w-full bg-transparent text-sm outline-none"
                       >
                         {DEPARTMENTS.map((d) => (
-                          <option key={d} value={d}>{d}</option>
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
                         ))}
                       </select>
                     </Field>
@@ -263,7 +252,9 @@ function AuthPage() {
                         className="w-full bg-transparent text-sm outline-none"
                       >
                         {YEARS.map((y) => (
-                          <option key={y} value={y}>{y}</option>
+                          <option key={y} value={y}>
+                            {y}
+                          </option>
                         ))}
                       </select>
                     </Field>
@@ -294,7 +285,11 @@ function AuthPage() {
                   <SubmitButton busy={busy}>Create account</SubmitButton>
                   <p className="text-center text-xs text-muted-foreground">
                     Already have an account?{" "}
-                    <button type="button" onClick={() => setMode("signin")} className="font-medium text-primary underline-offset-2 hover:underline">
+                    <button
+                      type="button"
+                      onClick={() => setMode("signin")}
+                      className="font-medium text-primary underline-offset-2 hover:underline"
+                    >
                       Sign in
                     </button>
                   </p>
@@ -304,7 +299,9 @@ function AuthPage() {
               <p className="mt-6 text-center text-[11px] leading-relaxed text-muted-foreground">
                 By continuing you agree that AASARE will use your account only for counselling
                 appointments at SMVITM.{" "}
-                <Link to="/about" className="underline underline-offset-2">Learn more</Link>
+                <Link href="/about" className="underline underline-offset-2">
+                  Learn more
+                </Link>
               </p>
             </div>
           </div>
@@ -315,7 +312,15 @@ function AuthPage() {
   );
 }
 
-function Field({ icon, label, children }: { icon?: React.ReactNode; label: string; children: React.ReactNode }) {
+function Field({
+  icon,
+  label,
+  children,
+}: {
+  icon?: ReactNode;
+  label: string;
+  children: ReactNode;
+}) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
@@ -329,7 +334,7 @@ function Field({ icon, label, children }: { icon?: React.ReactNode; label: strin
   );
 }
 
-function SubmitButton({ busy, children }: { busy: boolean; children: React.ReactNode }) {
+function SubmitButton({ busy, children }: { busy: boolean; children: ReactNode }) {
   return (
     <button
       type="submit"
@@ -345,10 +350,22 @@ function SubmitButton({ busy, children }: { busy: boolean; children: React.React
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
-      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.5 17.7 9.5 24 9.5z"/>
-      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.3z"/>
-      <path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.7 0 20.2 0 24s.9 7.3 2.6 10.8l7.8-6.1z"/>
-      <path fill="#34A853" d="M24 48c6.2 0 11.5-2 15.4-5.5l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.7-4-13.6-9.6l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/>
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.5 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.5 17.7 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.5 24.5c0-1.6-.1-3.2-.4-4.7H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.3z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.7 0 20.2 0 24s.9 7.3 2.6 10.8l7.8-6.1z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.2 0 11.5-2 15.4-5.5l-7.5-5.8c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.7-4-13.6-9.6l-7.8 6.1C6.5 42.6 14.6 48 24 48z"
+      />
     </svg>
   );
 }

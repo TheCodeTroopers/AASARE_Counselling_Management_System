@@ -1,27 +1,28 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import Link from "next/link";
 import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
-export const Route = createFileRoute("/about")({
-  component: About,
-  head: () => ({
-    meta: [
-      { title: "About AASARE — SMVITM Counselling Cell" },
-      { name: "description", content: "AASARE is the Institutional Counselling Cell at Shri Madhwa Vadiraja Institute of Technology & Management, Udupi." },
-    ],
-  }),
-});
-
 const steps = [
-  { title: "Browse counsellors", body: "See faculty across every department, with their focus areas and current availability." },
-  { title: "Pick a slot", body: "Choose from open time slots in the next seven days — live availability, no back-and-forth." },
-  { title: "Share a few lines", body: "Tell your counsellor what's on your mind. Only they will read it." },
-  { title: "Get an update", body: "Your request moves through Pending → Approved, and you'll see status changes in real time." },
+  {
+    title: "Browse counsellors",
+    body: "See faculty across every department, with their focus areas and current availability.",
+  },
+  {
+    title: "Pick a slot",
+    body: "Choose from open time slots in the next seven days — live availability, no back-and-forth.",
+  },
+  {
+    title: "Share a few lines",
+    body: "Tell your counsellor what's on your mind. Only they will read it.",
+  },
+  {
+    title: "Get an update",
+    body: "Your request moves through Pending → Approved, and you'll see status changes in real time.",
+  },
 ];
 
-export default function About() { return <AboutView />; }
-function AboutView() {
+export default function AboutPage() {
   return (
     <div className="min-h-screen">
       <SiteHeader />
@@ -33,9 +34,9 @@ function AboutView() {
           A counselling cell built around <em className="italic text-gold">student privacy</em>.
         </h1>
         <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-          AASARE is the Institutional Counselling Cell of Shri Madhwa Vadiraja Institute
-          of Technology & Management. Coordinated by Dr. Deepika B V (SWO), the cell brings
-          together nine faculty counsellors from across the college's departments.
+          AASARE is the Institutional Counselling Cell of Shri Madhwa Vadiraja Institute of
+          Technology & Management. Coordinated by Dr. Deepika B V (SWO), the cell brings together
+          nine faculty counsellors from across the college's departments.
         </p>
 
         <div className="mt-14 grid gap-4 md:grid-cols-2">
@@ -78,7 +79,7 @@ function AboutView() {
             A single conversation can change how a whole semester feels.
           </p>
           <Link
-            to="/counsellors"
+            href="/counsellors"
             className="mt-6 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition hover:-translate-y-0.5"
           >
             Meet the counsellors
