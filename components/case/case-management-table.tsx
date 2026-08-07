@@ -1,10 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Eye, PenSquare, Copy, Trash2 } from 'lucide-react';
-import { getAllCases } from '@/services/case.service';
+import { Eye, Plus, Trash2, FileText } from 'lucide-react';
+import { toast } from 'sonner';
+import { getAllCases, deleteCase } from '@/services/case.service';
 import { SearchFilterBar } from '@/components/common/search-filter-bar';
 import { SectionCard } from '@/components/common/section-card';
 import { StatusBadge } from '@/components/common/status-badge';
@@ -14,7 +15,9 @@ import { LoadingSkeleton } from '@/components/common/loading-skeleton';
 export function CaseManagementTable() {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
-  const { data, isLoading, isError } = useQuery({
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['cases'],
     queryFn: getAllCases,
   });
@@ -22,21 +25,50 @@ export function CaseManagementTable() {
   const cases = data?.data ?? [];
 
   const filteredCases = useMemo(() => {
-    return cases.filter((item) => [item.id, item.studentName, item.department].join(' ').toLowerCase().includes(search.toLowerCase()));
+    return cases.filter((item: any) =>
+      [item.id, item.studentName, item.department].join(' ').toLowerCase().includes(search.toLowerCase())
+    );
   }, [cases, search]);
 
+  const handleDelete = async (id: string) => {
+    if (!confirm(`Are you sure you want to delete Case Record ${id}?`)) return;
+    try {
+      await deleteCase(id);
+      toast.success(`Case ${id} deleted.`);
+      await refetch();
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete case.');
+    }
+  };
+
   if (isLoading) return <LoadingSkeleton rows={4} />;
-  if (isError) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load case records.</div>;
+  if (isError)
+    return (
+      <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">
+        Unable to load case records.
+      </div>
+    );
 
   return (
-    <SectionCard title="Case Management" subtitle="Private counselling case directory; completely separate from appointment workflows.">
+    <SectionCard
+      title="Case Sheet Management"
+      subtitle="Confidential Case Sheet records following the official SMVITM Mental Health First Aid format."
+    >
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="w-full lg:max-w-md">
-          <SearchFilterBar value={search} onChange={setSearch} placeholder="Search case ID or student" />
+          <SearchFilterBar value={search} onChange={setSearch} placeholder="Search by Case ID, client name, or department" />
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => setViewMode('table')}>Table View</Button>
-          <Button variant="secondary" onClick={() => setViewMode('cards')}>Card View</Button>
+          <Link
+            href="/new-case"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D214F] px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-[#581a3f]"
+          >
+            <Plus className="h-4 w-4" /> Create New Case Sheet
+          </Link>
+          <Button variant="ghost" onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}>
+            {viewMode === 'table' ? 'Card View' : 'Table View'}
+          </Button>
         </div>
       </div>
 
@@ -46,55 +78,83 @@ export function CaseManagementTable() {
             <thead className="bg-[#F8F3EE] text-[#6D214F]">
               <tr>
                 <th className="p-3">Case ID</th>
-                <th className="p-3">Student Name</th>
+                <th className="p-3">Client / Student Name</th>
+                <th className="p-3">Department</th>
                 <th className="p-3">Created</th>
-                <th className="p-3">Last Updated</th>
                 <th className="p-3">Status</th>
-                <th className="p-3">Actions</th>
+                <th className="p-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCases.map((item) => (
+              {filteredCases.map((item: any) => (
                 <tr key={item.id} className="border-t border-[#E8DDD5] bg-white transition hover:bg-[#F8F3EE]">
-                  <td className="p-3">{item.id}</td>
-                  <td className="p-3">{item.studentName}</td>
-                  <td className="p-3">{item.createdDate}</td>
-                  <td className="p-3">{item.lastUpdated}</td>
-                  <td className="p-3"><StatusBadge status={item.status} /></td>
+                  <td className="p-3 font-mono text-xs text-[#6D214F] font-semibold">{item.id}</td>
+                  <td className="p-3 font-medium">{item.studentName}</td>
+                  <td className="p-3 text-slate-600">{item.department}</td>
+                  <td className="p-3 text-slate-600">{item.createdDate}</td>
                   <td className="p-3">
-                    <div className="flex flex-wrap gap-2">
-                      <Link href={`/case/${item.id}`} className="rounded-2xl bg-[#6D214F] px-3 py-1 text-xs text-white">Open</Link>
-                      <button className="rounded-2xl bg-[#F8F3EE] px-3 py-1 text-xs text-[#6D214F]">Edit</button>
-                      <button className="rounded-2xl bg-[#E76F51] px-3 py-1 text-xs text-white">Delete</button>
+                    <StatusBadge status={item.status} />
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Link
+                        href={`/case/${item.id}`}
+                        className="inline-flex items-center gap-1 rounded-xl bg-[#6D214F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#581a3f]"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> Open Sheet
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
+              {filteredCases.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="p-8 text-center text-sm text-slate-500">
+                    No case records found. Click "+ Create New Case Sheet" to create one.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredCases.map((item) => (
-            <div key={item.id} className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1">
+          {filteredCases.map((item: any) => (
+            <div
+              key={item.id}
+              className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1"
+            >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold">{item.id}</p>
-                  <p className="text-sm text-slate-500">{item.studentName}</p>
+                  <p className="font-mono text-xs font-bold text-[#6D214F]">{item.id}</p>
+                  <p className="font-semibold text-slate-900">{item.studentName}</p>
                 </div>
                 <StatusBadge status={item.status} />
               </div>
-              <div className="mt-4 space-y-2 text-sm text-slate-600">
+              <div className="mt-3 space-y-1 text-xs text-slate-600">
                 <p>Department: {item.department}</p>
                 <p>Semester: {item.semester}</p>
                 <p>Created: {item.createdDate}</p>
-                <p>Last updated: {item.lastUpdated}</p>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link href={`/case/${item.id}`} className="rounded-2xl bg-[#6D214F] px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Eye className="h-3 w-3" />Open</span></Link>
-                <button className="rounded-2xl bg-[#F8F3EE] px-3 py-2 text-xs text-[#6D214F]"><span className="flex gap-1 items-center"><PenSquare className="h-3 w-3" />Edit</span></button>
-                <button className="rounded-2xl bg-[#F8F3EE] px-3 py-2 text-xs text-[#6D214F]"><span className="flex gap-1 items-center"><Copy className="h-3 w-3" />Duplicate</span></button>
-                <button className="rounded-2xl bg-[#E76F51] px-3 py-2 text-xs text-white"><span className="flex gap-1 items-center"><Trash2 className="h-3 w-3" />Delete</span></button>
+              <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                <Link
+                  href={`/case/${item.id}`}
+                  className="inline-flex items-center gap-1 rounded-xl bg-[#6D214F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#581a3f]"
+                >
+                  <Eye className="h-3.5 w-3.5" /> Open Sheet
+                </Link>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
               </div>
             </div>
           ))}

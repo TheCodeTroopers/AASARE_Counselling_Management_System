@@ -174,7 +174,7 @@ function AppointmentCard({
         <p>{a.reason}</p>
       </div>
 
-      {a.rejectionReason && (
+      {a.status === "rejected" && a.rejectionReason && (
         <p className="mt-3 text-sm text-rose-800">
           <strong>Reason for rejection:</strong> {a.rejectionReason}
         </p>

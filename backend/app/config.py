@@ -1,5 +1,11 @@
 import os
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
+
+# Load root .env.local file
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(root_dir, ".env.local"))
+load_dotenv(os.path.join(root_dir, ".env"))
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "AASARE Counselling Management System API"

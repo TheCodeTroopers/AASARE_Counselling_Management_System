@@ -106,7 +106,7 @@ BEGIN
       c_id,
       jsonb_build_object('sub', c_id::text, 'email', c_user.email, 'email_verified', true),
       'email',
-      c_user.email,
+      c_id::text,
       now(),
       now(),
       now()
