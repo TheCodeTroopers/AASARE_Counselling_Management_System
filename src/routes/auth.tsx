@@ -35,7 +35,7 @@ const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "PG / MBA"];
 function AuthPage() {
   const navigate = useNavigate();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, role, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
 
@@ -46,17 +46,25 @@ function AuthPage() {
   // signup fields
   const [suName, setSuName] = useState("");
   const [suUsn, setSuUsn] = useState("");
+  const [suRole, setSuRole] = useState<"student" | "counsellor" | "admin">("student");
   const [suDept, setSuDept] = useState(DEPARTMENTS[0]);
   const [suYear, setSuYear] = useState(YEARS[0]);
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
 
-  // If already signed in, bounce home.
+  // If already signed in, bounce to the correct space based on role
   useEffect(() => {
     if (!authLoading && user) {
-      navigate({ to: "/" });
+      const activeRole = profile?.role || role || "student";
+      if (activeRole === "admin") {
+        navigate({ to: "/admin/dashboard" as any });
+      } else if (activeRole === "counsellor") {
+        navigate({ to: "/dashboard" as any });
+      } else {
+        navigate({ to: "/" });
+      }
     }
-  }, [user, authLoading, navigate]);
+  }, [user, profile, role, authLoading, navigate]);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -72,13 +80,12 @@ function AuthPage() {
     }
     toast.success("Welcome back");
     router.invalidate();
-    navigate({ to: "/" });
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
-    if (!suName.trim() || !suUsn.trim()) {
-      toast.error("Please fill in your name and USN");
+    if (!suName.trim() || (suRole === "student" && !suUsn.trim())) {
+      toast.error("Please fill in your full name and USN");
       return;
     }
     setBusy(true);
@@ -92,6 +99,7 @@ function AuthPage() {
           usn: suUsn.trim().toUpperCase(),
           department: suDept,
           year: suYear,
+          role: suRole,
         },
       },
     });
@@ -234,16 +242,29 @@ function AuthPage() {
                       className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>
-                  <Field label="USN">
-                    <input
-                      type="text"
-                      required
-                      value={suUsn}
-                      onChange={(e) => setSuUsn(e.target.value)}
-                      placeholder="YOUR USN"
-                      className="w-full bg-transparent text-sm uppercase outline-none placeholder:text-muted-foreground/60"
-                    />
+                  <Field label="Account Role">
+                    <select
+                      value={suRole}
+                      onChange={(e) => setSuRole(e.target.value as "student" | "counsellor" | "admin")}
+                      className="w-full bg-transparent text-sm outline-none"
+                    >
+                      <option value="student">Student</option>
+                      <option value="counsellor">Faculty Counsellor</option>
+                      <option value="admin">Administrator</option>
+                    </select>
                   </Field>
+                  {suRole === "student" && (
+                    <Field label="USN">
+                      <input
+                        type="text"
+                        required
+                        value={suUsn}
+                        onChange={(e) => setSuUsn(e.target.value)}
+                        placeholder="YOUR USN"
+                        className="w-full bg-transparent text-sm uppercase outline-none placeholder:text-muted-foreground/60"
+                      />
+                    </Field>
+                  )}
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Department">
                       <select

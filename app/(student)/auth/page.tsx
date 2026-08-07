@@ -27,7 +27,7 @@ const YEARS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "PG / MBA"];
 
 export default function AuthPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, role, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
 
@@ -38,6 +38,7 @@ export default function AuthPage() {
   // signup fields
   const [suName, setSuName] = useState("");
   const [suUsn, setSuUsn] = useState("");
+  const [suRole, setSuRole] = useState<"student" | "counsellor" | "admin">("student");
   const [suDept, setSuDept] = useState(DEPARTMENTS[0]);
   const [suYear, setSuYear] = useState(YEARS[0]);
   const [suEmail, setSuEmail] = useState("");
@@ -45,49 +46,24 @@ export default function AuthPage() {
 
   // If already signed in, bounce to the correct dashboard based on role
   useEffect(() => {
-    if (!authLoading && user) {
-      const lowerEmail = user.email?.toLowerCase() || "";
-      if (lowerEmail.includes("admin")) {
+    if (!authLoading && user && profile) {
+      const activeRole = profile.role || role || "student";
+      console.log(`[Auth Page Debug] Redirecting signed-in user (${user.email}) with role: ${activeRole}`);
+      if (activeRole === "admin") {
         router.push("/admin/dashboard");
-      } else if (
-        lowerEmail.includes("counsellor") ||
-        lowerEmail.includes("counselor") ||
-        lowerEmail.includes("meera") ||
-        lowerEmail.includes("deepika")
-      ) {
+      } else if (activeRole === "counsellor") {
         router.push("/dashboard");
       } else {
         router.push("/");
       }
     }
-  }, [user, authLoading, router]);
+  }, [user, profile, role, authLoading, router]);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
-    
-    const lowerEmail = siEmail.toLowerCase().trim();
-    
-    // Admin or Counsellor bypass for easy development testing
-    if (
-      lowerEmail.includes("admin") ||
-      lowerEmail.includes("counsellor") ||
-      lowerEmail.includes("counselor") ||
-      lowerEmail.includes("meera") ||
-      lowerEmail.includes("deepika")
-    ) {
-      setBusy(false);
-      toast.success("Welcome back (Portal Access Granted)");
-      if (lowerEmail.includes("admin")) {
-        router.push("/admin/dashboard");
-      } else {
-        router.push("/dashboard");
-      }
-      return;
-    }
 
-    // Standard student auth using Supabase
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: siEmail.trim(),
       password: siPassword,
     });

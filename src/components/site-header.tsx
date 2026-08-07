@@ -1,27 +1,32 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, Shield, User, X } from "lucide-react";
 import { useState } from "react";
 import logo from "@/assets/smvitm-logo.jpg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
-const nav = [
-  { to: "/", label: "Home" },
-  { to: "/counsellors", label: "Counsellors" },
-  { to: "/appointments", label: "My Appointments" },
-  { to: "/about", label: "About AASARE" },
-];
-
 export function SiteHeader() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, profile, role, isCounsellor, isAdmin, signOut } = useAuth();
+
+  const nav = [
+    { to: "/", label: "Home" },
+    { to: "/counsellors", label: "Counsellors" },
+    ...(role === "student" ? [{ to: "/appointments", label: "My Appointments" }] : []),
+    ...(isCounsellor ? [{ to: "/appointments", label: "Dashboard Sessions" }] : []),
+    ...(isAdmin ? [{ to: "/appointments", label: "All Schedules" }] : []),
+    { to: "/about", label: "About AASARE" },
+  ];
+
   const displayName =
+    profile?.full_name ||
     (user?.user_metadata?.full_name as string | undefined) ||
     (user?.user_metadata?.name as string | undefined) ||
     user?.email ||
     "";
+
   const initials = displayName
     ? displayName
         .split(/[\s@.]+/)
@@ -41,8 +46,10 @@ export function SiteHeader() {
             className="h-11 w-11 object-contain"
           />
           <div className="flex flex-col leading-tight">
-            <span className="font-display text-xl font-semibold tracking-tight text-primary">
+            <span className="font-display text-xl font-semibold tracking-tight text-primary flex items-center gap-1.5">
               AASARE
+              {isAdmin && <span className="rounded bg-rose-500/10 text-rose-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-rose-500/20">ADMIN</span>}
+              {isCounsellor && <span className="rounded bg-amber-500/10 text-amber-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-amber-500/20">COUNSELLOR</span>}
             </span>
             <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Institutional Counselling Cell · SMVITM
@@ -79,12 +86,13 @@ export function SiteHeader() {
               <Link
                 to="/appointments"
                 className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
-                title={displayName}
+                title={`${displayName} (${role})`}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
                   {initials || "·"}
                 </span>
                 <span className="max-w-[9rem] truncate">{displayName.split(" ")[0] || "You"}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-semibold">({role})</span>
               </Link>
               <button
                 onClick={async () => {
@@ -138,7 +146,7 @@ export function SiteHeader() {
                 }}
                 className="rounded-md px-3 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-secondary"
               >
-                Sign out ({displayName.split(" ")[0] || "you"})
+                Sign out ({displayName.split(" ")[0] || "you"} - {role})
               </button>
             ) : (
               <Link

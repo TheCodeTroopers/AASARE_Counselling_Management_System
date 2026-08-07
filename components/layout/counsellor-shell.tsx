@@ -8,11 +8,23 @@ import { COUNSELLOR_NAV_ITEMS } from '@/constants/navigation';
 import { cn } from '@/utils/cn';
 import { NotificationDrawer } from '@/components/notifications/notification-drawer';
 
+import { useAuth } from '@/hooks/use-auth';
+import { toast } from 'sonner';
+
 export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const { user, profile, signOut } = useAuth();
+
+  const counsellorName = profile?.full_name || user?.email || 'Counsellor';
+  const todayFormatted = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <div className={cn('min-h-screen transition-colors duration-300', isDark ? 'bg-[#22111b] text-[#fdf8f4]' : 'bg-background text-text')}>
@@ -36,8 +48,10 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                 return (
                   <button
                     key={item.label}
-                    onClick={() => {
-                      router.push('/login');
+                    onClick={async () => {
+                      await signOut();
+                      toast.success("Signed out");
+                      router.push('/auth');
                     }}
                     className={cn(
                       'flex w-full items-center rounded-2xl px-3 py-3 text-sm font-medium transition-all duration-300 cursor-pointer',
@@ -75,8 +89,8 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                   <span className="text-sm font-bold text-[#6D214F]">A</span>
                 </div>
                 <div>
-                  <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>Dr. Deepika B V</p>
-                  <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>Thursday, 21 July 2026</p>
+                  <p className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-900')}>{counsellorName}</p>
+                  <p className={cn('text-sm', isDark ? 'text-slate-400' : 'text-slate-500')}>{todayFormatted}</p>
                 </div>
               </div>
 

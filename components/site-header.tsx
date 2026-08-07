@@ -19,9 +19,10 @@ export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, profile, role, isCounsellor, isAdmin, signOut } = useAuth();
   
   const displayName =
+    profile?.full_name ||
     (user?.user_metadata?.full_name as string | undefined) ||
     (user?.user_metadata?.name as string | undefined) ||
     user?.email ||
@@ -64,7 +65,7 @@ export function SiteHeader() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as any}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-medium transition-colors",
                   active
@@ -82,7 +83,7 @@ export function SiteHeader() {
           {user ? (
             <div className="ml-3 flex items-center gap-2">
               <Link
-                href="/my-appointments"
+                href={isAdmin ? "/admin/dashboard" : isCounsellor ? "/dashboard" : "/my-appointments"}
                 className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
                 title={displayName}
               >
@@ -90,6 +91,11 @@ export function SiteHeader() {
                   {initials || "·"}
                 </span>
                 <span className="max-w-[9rem] truncate">{displayName.split(" ")[0] || "You"}</span>
+                {(isCounsellor || isAdmin) && (
+                  <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
+                    {role}
+                  </span>
+                )}
               </Link>
               <button
                 onClick={async () => {
@@ -128,7 +134,7 @@ export function SiteHeader() {
             {nav.map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as any}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
               >
