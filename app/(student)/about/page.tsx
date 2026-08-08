@@ -63,14 +63,14 @@ export default function AboutPage() {
           </ul>
         </div>
 
-        <div className="mt-14 rounded-3xl bg-primary px-8 py-14 text-center text-primary-foreground">
-          <h2 className="font-display text-3xl md:text-4xl">Whenever you're ready.</h2>
-          <p className="mt-3 max-w-lg text-primary-foreground/80">
+        <div className="mt-14 flex flex-col items-center rounded-3xl bg-primary px-8 py-14 text-center text-primary-foreground shadow-xl">
+          <h2 className="font-display text-3xl text-primary-foreground md:text-4xl">Whenever you're ready.</h2>
+          <p className="mt-3 max-w-lg text-primary-foreground/90 font-medium">
             A single conversation can change how a whole semester feels.
           </p>
           <Link
             href="/counsellors"
-            className="mt-6 inline-flex rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition hover:-translate-y-0.5"
+            className="mt-6 inline-flex rounded-full bg-secondary px-6 py-3 text-sm font-semibold text-primary transition hover:bg-white hover:shadow-md cursor-pointer"
           >
             Meet the counsellors
           </Link>

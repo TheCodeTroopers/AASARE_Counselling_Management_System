@@ -140,12 +140,12 @@ function Index() {
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
             <div className="relative max-w-2xl">
               <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ready when you are</p>
-              <h2 className="mt-4 font-display text-4xl leading-tight md:text-5xl">
+              <h2 className="mt-4 font-display text-4xl leading-tight text-primary-foreground md:text-5xl">
                 Reaching out is the hardest step. We'll take it with you.
               </h2>
               <Link
                 to="/counsellors"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold px-6 py-3 text-sm font-semibold text-gold-foreground transition hover:-translate-y-0.5"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-secondary px-6 py-3 text-sm font-semibold text-primary transition hover:bg-white hover:shadow-md cursor-pointer"
               >
                 Browse counsellors <ArrowRight className="h-4 w-4" />
               </Link>

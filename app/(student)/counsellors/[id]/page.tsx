@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarDays, CheckCircle2, Clock, Mail, ShieldCheck, Ban } from "lucide-react";
 import { useEffect, useMemo, useState, use } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
-import { getCounsellor, getSlotsForCounsellor } from "@/lib/counsellors";
+import { getCounsellor } from "@/lib/counsellors";
 import { createAppointment, fetchBookedSlots } from "@/lib/appointments";
+import { fetchAvailableSlots, fetchUnavailableDates, type SlotRow } from "@/lib/slots";
 
 function getNext7Days() {
   const days: { iso: string; label: string; dow: string; day: string }[] = [];
@@ -40,11 +41,34 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
   const [submitting, setSubmitting] = useState(false);
   const [bookedTimes, setBookedTimes] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
+  const [availableSlots, setAvailableSlots] = useState<SlotRow[]>([]);
+  const [slotsFetchLoading, setSlotsFetchLoading] = useState(true);
+  const [unavailableDates, setUnavailableDates] = useState<string[]>([]);
 
-  const localSlots = counsellor ? getSlotsForCounsellor(counsellor.id, selectedDate) : [];
-  const slots = localSlots.map((s) => ({
-    time: s.time,
-    booked: s.booked || bookedTimes.includes(s.time),
+  // Load real slots & date unavailability from Supabase
+  useEffect(() => {
+    if (!counsellor) return;
+    setSlotsFetchLoading(true);
+    Promise.all([
+      fetchAvailableSlots(counsellor.id),
+      fetchUnavailableDates(counsellor.id),
+    ])
+      .then(([rows, dates]) => {
+        setAvailableSlots(rows);
+        setUnavailableDates(dates);
+      })
+      .catch(() => {
+        setAvailableSlots([]);
+        setUnavailableDates([]);
+      })
+      .finally(() => setSlotsFetchLoading(false));
+  }, [counsellor]);
+
+  const isSelectedDateUnavailable = unavailableDates.includes(selectedDate);
+
+  const slots = availableSlots.map((s) => ({
+    time: s.slot_time,
+    booked: bookedTimes.includes(s.slot_time),
   }));
 
   useEffect(() => {
@@ -83,12 +107,16 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSelectedDateUnavailable) {
+      toast.error("Counsellor is not available on this date.");
+      return;
+    }
     if (!selectedTime) {
       toast.error("Please pick a time slot.");
       return;
     }
-    if (reason.trim().length < 10) {
-      toast.error("Please share a short reason (at least 10 characters).");
+    if (reason.trim().length > 0 && reason.trim().length < 3) {
+      toast.error("If you add a reason, please write at least a few characters.");
       return;
     }
     setSubmitting(true);
@@ -180,6 +208,7 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
                 <div className="grid grid-cols-7 gap-2">
                   {days.map((d) => {
                     const active = d.iso === selectedDate;
+                    const isUnavailable = unavailableDates.includes(d.iso);
                     return (
                       <button
                         type="button"
@@ -189,14 +218,19 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
                           setSelectedTime(null);
                         }}
                         className={
-                          "flex flex-col items-center rounded-xl border py-2 text-sm transition " +
-                          (active
-                            ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                            : "border-border bg-background hover:border-primary/40")
+                          "relative flex flex-col items-center rounded-xl border py-2 text-sm transition " +
+                          (isUnavailable
+                            ? "border-rose-200 bg-rose-50/50 text-rose-700"
+                            : active
+                              ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                              : "border-border bg-background hover:border-primary/40")
                         }
                       >
                         <span className="text-[10px] uppercase tracking-widest opacity-70">{d.dow}</span>
-                        <span className="font-display text-xl font-semibold">{d.day}</span>
+                        <span className={"font-display text-xl font-semibold " + (isUnavailable ? "line-through opacity-80" : "")}>{d.day}</span>
+                        {isUnavailable && (
+                          <span className="mt-0.5 text-[8px] font-bold uppercase tracking-tight text-rose-600">Off</span>
+                        )}
                       </button>
                     );
                   })}
@@ -206,8 +240,21 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
               <div className="mt-6">
                 <div className="mb-2 flex items-center justify-between">
                   <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Time slot</p>
-                  {slotsLoading && <span className="text-[10px] text-muted-foreground">checking availability…</span>}
+                  {(slotsLoading || slotsFetchLoading) && <span className="text-[10px] text-muted-foreground">checking availability…</span>}
                 </div>
+                {isSelectedDateUnavailable ? (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50/60 p-6 text-center">
+                    <Ban className="h-6 w-6 text-rose-500" />
+                    <p className="text-sm font-semibold text-rose-800">Counsellor is not available on this date (Day Off)</p>
+                    <p className="text-xs text-rose-600/80">Please select a different date above to view available time slots.</p>
+                  </div>
+                ) : slots.length === 0 ? (
+                  <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border bg-muted/40 py-8 text-center">
+                    <Clock className="h-6 w-6 text-muted-foreground/50" />
+                    <p className="text-sm text-muted-foreground">No time slots available yet.</p>
+                    <p className="text-[11px] text-muted-foreground/70">The counsellor hasn't added any slots for booking.</p>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-3 gap-2">
                   {slots.map((s: { time: string; booked: boolean }) => {
                     const active = s.time === selectedTime;
@@ -233,7 +280,8 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
                     );
                   })}
                 </div>
-                {bookedTimes.length > 0 && (
+                )}
+                {!isSelectedDateUnavailable && bookedTimes.length > 0 && (
                   <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
                     <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-600" />
                     Struck-through times are already booked and awaiting the counsellor's approval — please pick a different slot.
@@ -243,13 +291,13 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
 
               <div className="mt-6">
                 <label className="mb-2 block text-xs font-medium uppercase tracking-widest text-muted-foreground">
-                  What would you like to talk about?
+                  What would you like to talk about? <span className="normal-case font-normal opacity-60">(optional)</span>
                 </label>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value.slice(0, 500))}
                   rows={4}
-                  placeholder="A few lines are enough. Only your counsellor will read this."
+                  placeholder="A few lines are enough — or leave blank if you prefer."
                   className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
                 <p className="mt-1 text-right text-[11px] text-muted-foreground">{reason.length}/500</p>
@@ -257,11 +305,15 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
 
               <button
                 type="submit"
-                disabled={submitting || !counsellor.available}
+                disabled={submitting || !counsellor.available || isSelectedDateUnavailable}
                 className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
-                {counsellor.available ? (submitting ? "Sending…" : "Send request") : "Currently unavailable"}
+                {isSelectedDateUnavailable
+                  ? "Counsellor Off on Selected Date"
+                  : counsellor.available
+                    ? (submitting ? "Sending…" : "Send request")
+                    : "Currently unavailable"}
               </button>
               <p className="mt-3 text-center text-[11px] text-muted-foreground">
                 You'll see it under <Link href="/my-appointments" className="underline">My Appointments</Link> once submitted.

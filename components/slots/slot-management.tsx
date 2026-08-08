@@ -1,51 +1,88 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Clock, Plus, Trash2, CheckCircle2, XCircle, Sparkles } from 'lucide-react';
+import { useEffect, useState, useMemo } from 'react';
+import { Clock, Plus, Trash2, CheckCircle2, XCircle, CalendarDays, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { SectionCard } from '@/components/common/section-card';
-import { Button } from '@/components/common/button';
+import {
+  fetchMySlots,
+  upsertSlot,
+  deleteSlot,
+  getMyCounsellorSlug,
+  fetchMyDateAvailability,
+  toggleDateAvailability,
+  type SlotRow,
+  type DateAvailabilityRow,
+} from '@/lib/slots';
 
 export type SlotItem = {
   id: string;
-  time: string; // e.g. "09:30 AM"
+  time: string;
   available: boolean;
 };
 
-const defaultSlots: SlotItem[] = [
-  { id: 'slot-1', time: '09:30 AM', available: true },
-  { id: 'slot-2', time: '10:30 AM', available: true },
-  { id: 'slot-3', time: '11:30 AM', available: true },
-  { id: 'slot-4', time: '02:00 PM', available: true },
-  { id: 'slot-5', time: '03:00 PM', available: false },
-  { id: 'slot-6', time: '04:00 PM', available: true },
-];
+function getNext7Days() {
+  const days: { iso: string; dow: string; day: string; month: string }[] = [];
+  const now = new Date();
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(now.getDate() + i);
+    days.push({
+      iso: d.toISOString().slice(0, 10),
+      dow: d.toLocaleDateString(undefined, { weekday: 'short' }),
+      day: String(d.getDate()),
+      month: d.toLocaleDateString(undefined, { month: 'short' }),
+    });
+  }
+  return days;
+}
 
 export function SlotManagement() {
   const [slots, setSlots] = useState<SlotItem[]>([]);
+  const [counsellorSlug, setCounsellorSlug] = useState<string | null>(null);
   const [newTime, setNewTime] = useState('09:00');
-  const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
+  // Date availability overrides map: dateISO -> is_available boolean
+  const [dateOverrides, setDateOverrides] = useState<Record<string, boolean>>({});
+  const days = useMemo(() => getNext7Days(), []);
+
+  // Load counsellor slug + slots + date availability
   useEffect(() => {
-    const saved = localStorage.getItem('aasare_counsellor_daily_slots');
-    if (saved) {
+    async function load() {
+      setLoading(true);
       try {
-        setSlots(JSON.parse(saved));
-      } catch {
-        setSlots(defaultSlots);
+        const slug = await getMyCounsellorSlug();
+        setCounsellorSlug(slug);
+        if (!slug) {
+          toast.error('Could not identify your counsellor profile. Please contact admin.');
+          return;
+        }
+
+        const [slotRows, availabilityRows]: [SlotRow[], DateAvailabilityRow[]] = await Promise.all([
+          fetchMySlots(),
+          fetchMyDateAvailability(),
+        ]);
+
+        setSlots(slotRows.map((r) => ({ id: r.id, time: r.slot_time, available: r.available })));
+
+        const map: Record<string, boolean> = {};
+        for (const row of availabilityRows) {
+          map[row.available_date] = row.is_available;
+        }
+        setDateOverrides(map);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load settings. Please refresh.');
+      } finally {
+        setLoading(false);
       }
-    } else {
-      setSlots(defaultSlots);
     }
-    setHydrated(true);
+    load();
   }, []);
 
-  const saveToStorage = (updated: SlotItem[]) => {
-    setSlots(updated);
-    localStorage.setItem('aasare_counsellor_daily_slots', JSON.stringify(updated));
-  };
-
-  // Convert 24h input time string "14:30" to formatted "02:30 PM"
+  // Format 24h string "14:30" → "02:30 PM"
   const formatTime12h = (time24: string) => {
     if (!time24) return '10:00 AM';
     const [hStr, mStr] = time24.split(':');
@@ -57,61 +94,139 @@ export function SlotManagement() {
     return `${formattedH}:${m} ${ampm}`;
   };
 
-  const handleAddSlot = (e: React.FormEvent) => {
+  const handleAddSlot = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTime) {
-      toast.error('Please pick a valid time.');
-      return;
-    }
+    if (!newTime) { toast.error('Please pick a valid time.'); return; }
+    if (!counsellorSlug) { toast.error('Counsellor profile not found.'); return; }
 
     const formatted = formatTime12h(newTime);
     const exists = slots.some((s) => s.time.toLowerCase() === formatted.toLowerCase());
-    if (exists) {
-      toast.error(`Slot ${formatted} already exists.`);
-      return;
-    }
+    if (exists) { toast.error(`Slot ${formatted} already exists.`); return; }
 
-    const newSlot: SlotItem = {
-      id: `slot-${Date.now()}`,
-      time: formatted,
-      available: true,
-    };
-
-    const updated = [...slots, newSlot];
-    saveToStorage(updated);
-    toast.success(`Created slot for ${formatted}`);
-  };
-
-  const handleToggleAvailable = (id: string) => {
-    const updated = slots.map((s) => (s.id === id ? { ...s, available: !s.available } : s));
-    saveToStorage(updated);
-    const target = updated.find((s) => s.id === id);
-    if (target) {
-      toast.success(`${target.time} marked as ${target.available ? 'Available' : 'Unavailable'}`);
+    setSaving(true);
+    try {
+      const row = await upsertSlot(counsellorSlug, formatted, true);
+      setSlots((prev) => [...prev, { id: row.id, time: row.slot_time, available: row.available }]);
+      toast.success(`Created slot for ${formatted}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to create slot. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleDeleteSlot = (id: string) => {
+  const handleToggleAvailable = async (id: string) => {
+    if (!counsellorSlug) return;
     const target = slots.find((s) => s.id === id);
-    const updated = slots.filter((s) => s.id !== id);
-    saveToStorage(updated);
-    if (target) {
-      toast('Slot removed.');
+    if (!target) return;
+
+    const newAvailable = !target.available;
+    setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, available: newAvailable } : s)));
+    try {
+      await upsertSlot(counsellorSlug, target.time, newAvailable);
+      toast.success(`${target.time} marked as ${newAvailable ? 'Available' : 'Unavailable'}`);
+    } catch (err) {
+      console.error(err);
+      setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, available: target.available } : s)));
+      toast.error('Failed to update slot.');
     }
   };
 
-  const handleResetDefault = () => {
-    saveToStorage(defaultSlots);
-    toast.success('Reset to default slots');
+  const handleDeleteSlot = async (id: string) => {
+    const target = slots.find((s) => s.id === id);
+    setSlots((prev) => prev.filter((s) => s.id !== id));
+    try {
+      await deleteSlot(id);
+      if (target) toast('Slot removed.');
+    } catch (err) {
+      console.error(err);
+      if (target) setSlots((prev) => [...prev, target]);
+      toast.error('Failed to delete slot.');
+    }
   };
 
-  if (!hydrated) {
-    return <div className="p-8 text-center text-sm text-slate-500">Loading slot settings...</div>;
+  const handleToggleDateAvailability = async (dateISO: string) => {
+    if (!counsellorSlug) return;
+    const currentIsAvailable = dateOverrides[dateISO] !== false; // Default is true if un-set
+    const newIsAvailable = !currentIsAvailable;
+
+    // Optimistic UI update
+    setDateOverrides((prev) => ({ ...prev, [dateISO]: newIsAvailable }));
+
+    try {
+      await toggleDateAvailability(counsellorSlug, dateISO, newIsAvailable);
+      toast.success(
+        newIsAvailable
+          ? `Marked Available on ${dateISO}`
+          : `Marked Day Off / Unavailable on ${dateISO}`
+      );
+    } catch (err) {
+      console.error(err);
+      setDateOverrides((prev) => ({ ...prev, [dateISO]: currentIsAvailable }));
+      toast.error('Failed to update date availability.');
+    }
+  };
+
+  if (loading) {
+    return <div className="p-8 text-center text-sm text-slate-500">Loading slot & date settings…</div>;
   }
 
   return (
     <div className="space-y-6">
-      {/* 1. Slot Setting Option (Create Slot) */}
+      {/* 1. Date Availability Control (Next 7 Days) */}
+      <SectionCard
+        title="7-Day Schedule & Leave Settings"
+        subtitle="Click a date to mark yourself Available or Off. Students will not be able to request appointments on your off days."
+      >
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-7">
+          {days.map((d) => {
+            const isAvailable = dateOverrides[d.iso] !== false;
+            return (
+              <button
+                key={d.iso}
+                type="button"
+                onClick={() => handleToggleDateAvailability(d.iso)}
+                className={`flex flex-col items-center justify-between rounded-2xl border p-3 text-center transition-all cursor-pointer ${
+                  isAvailable
+                    ? 'border-emerald-200 bg-white hover:border-emerald-400 hover:shadow-md'
+                    : 'border-rose-200 bg-rose-50/70 hover:border-rose-400 opacity-90'
+                }`}
+              >
+                <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  {d.dow} · {d.month}
+                </div>
+                <div
+                  className={`my-1 font-display text-2xl font-bold ${
+                    isAvailable ? 'text-slate-800' : 'text-rose-600 line-through'
+                  }`}
+                >
+                  {d.day}
+                </div>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    isAvailable
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-rose-100 text-rose-800'
+                  }`}
+                >
+                  {isAvailable ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3" /> Available
+                    </>
+                  ) : (
+                    <>
+                      <Ban className="h-3 w-3" /> Day Off
+                    </>
+                  )}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </SectionCard>
+
+      {/* 2. Slot Setting Option (Create Slot) */}
       <SectionCard
         title="Slot Setting Option"
         subtitle="Create custom time slots for your daily student counselling schedule."
@@ -136,15 +251,16 @@ export function SlotManagement() {
           <div className="sm:w-auto">
             <button
               type="submit"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#6D214F] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#581a3f] active:scale-[0.98] cursor-pointer"
+              disabled={saving}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#6D214F] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#581a3f] active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
-              <Plus className="h-4 w-4" /> Add Slot
+              <Plus className="h-4 w-4" /> {saving ? 'Saving…' : 'Add Slot'}
             </button>
           </div>
         </form>
       </SectionCard>
 
-      {/* 2. Listed Created Slots with Toggle */}
+      {/* 3. Listed Created Slots with Toggle */}
       <SectionCard
         title="Created Daily Slots"
         subtitle="Toggle slots on/off to mark them available or unavailable for student bookings."
@@ -153,9 +269,6 @@ export function SlotManagement() {
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Total Slots ({slots.length}) · {slots.filter((s) => s.available).length} Available
           </span>
-          <Button variant="ghost" onClick={handleResetDefault}>
-            Reset Defaults
-          </Button>
         </div>
 
         {slots.length === 0 ? (
@@ -191,13 +304,9 @@ export function SlotManagement() {
                       }`}
                     >
                       {slot.available ? (
-                        <>
-                          <CheckCircle2 className="h-3 w-3" /> Available
-                        </>
+                        <><CheckCircle2 className="h-3 w-3" /> Available</>
                       ) : (
-                        <>
-                          <XCircle className="h-3 w-3" /> Unavailable
-                        </>
+                        <><XCircle className="h-3 w-3" /> Unavailable</>
                       )}
                     </span>
                   </div>

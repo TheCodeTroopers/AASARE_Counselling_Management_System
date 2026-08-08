@@ -12,6 +12,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      counsellor_availability: {
+        Row: {
+          id: string
+          counsellor_id: string
+          available_date: string
+          is_available: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          counsellor_id: string
+          available_date: string
+          is_available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          counsellor_id?: string
+          available_date?: string
+          is_available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      counsellor_slots: {
+        Row: {
+          id: string
+          counsellor_id: string
+          slot_time: string
+          available: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          counsellor_id: string
+          slot_time: string
+          available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          counsellor_id?: string
+          slot_time?: string
+          available?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       appointments: {
         Row: {
           counsellor_id: string
@@ -54,6 +108,7 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          counsellor_slug: string | null
           department: string | null
           email: string | null
           full_name: string | null
@@ -65,6 +120,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          counsellor_slug?: string | null
           department?: string | null
           email?: string | null
           full_name?: string | null
@@ -76,6 +132,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          counsellor_slug?: string | null
           department?: string | null
           email?: string | null
           full_name?: string | null
@@ -97,6 +154,22 @@ export type Database = {
         Returns: {
           slot_time: string
         }[]
+      }
+      get_available_slots: {
+        Args: { _counsellor_id: string }
+        Returns: {
+          id: string
+          counsellor_id: string
+          slot_time: string
+          available: boolean
+        }[]
+      }
+      get_unavailable_dates: {
+        Args: { _counsellor_id: string }
+        Returns: {
+          available_date: string
+        }[]
+      }
       }
     }
     Enums: {

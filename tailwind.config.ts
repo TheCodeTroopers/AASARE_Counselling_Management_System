@@ -1,15 +1,46 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}', './services/**/*.{ts,tsx}', './types/**/*.{ts,tsx}'],
+  content: [
+    './app/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './services/**/*.{ts,tsx}',
+    './types/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
-        primary: '#6D214F',
-        secondary: '#F8F3EE',
+        primary: {
+          DEFAULT: '#6D214F',
+          foreground: '#FCFAF8',
+        },
+        secondary: {
+          DEFAULT: '#F8F3EE',
+          foreground: '#6D214F',
+        },
+        gold: {
+          DEFAULT: '#E5B842',
+          foreground: '#2F2F2F',
+        },
+        cream: {
+          DEFAULT: '#F8F3EE',
+          foreground: '#2F2F2F',
+        },
+        muted: {
+          DEFAULT: '#F4EBE1',
+          foreground: '#7E6E65',
+        },
+        accent: {
+          DEFAULT: '#C89B7B',
+          foreground: '#FCFAF8',
+        },
+        card: {
+          DEFAULT: '#FFFFFF',
+          foreground: '#2F2F2F',
+        },
         background: '#FCFAF8',
-        card: '#FFFFFF',
-        accent: '#C89B7B',
+        foreground: '#2F2F2F',
         text: '#2F2F2F',
         'text-secondary': '#6E6E6E',
         border: '#E8DDD5',
