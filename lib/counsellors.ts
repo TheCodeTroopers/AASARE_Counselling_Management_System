@@ -10,6 +10,7 @@ export type Counsellor = {
   isCoordinator?: boolean;
   initials: string;
   accent: string; // avatar tint
+  image?: string; // optional photo from /public
 };
 
 export const counsellors: Counsellor[] = [
@@ -25,6 +26,7 @@ export const counsellors: Counsellor[] = [
     isCoordinator: true,
     initials: "DB",
     accent: "oklch(0.62 0.14 25)",
+    image: "/Dr. Deepika B V.webp",
   },
   {
     id: "subbulakshmi-karanth",
@@ -37,6 +39,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "SK",
     accent: "oklch(0.65 0.12 60)",
+    image: "/SUBBALAKSHMI-CHEM.jpg",
   },
   {
     id: "reshma-nayak",
@@ -49,6 +52,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "RN",
     accent: "oklch(0.7 0.11 40)",
+    image: "/Reshma-Nayak-Maths.jpg",
   },
   {
     id: "shashikala-r",
@@ -61,6 +65,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "SR",
     accent: "oklch(0.6 0.12 200)",
+    image: "/SHASHIKALA-R.jpg",
   },
   {
     id: "savitha-shenoy",
@@ -73,6 +78,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "SS",
     accent: "oklch(0.68 0.12 300)",
+    image: "/savitha-2.jpg",
   },
   {
     id: "ashwitha-thota",
@@ -85,6 +91,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "AT",
     accent: "oklch(0.66 0.13 340)",
+    image: "/Ashwitha.webp",
   },
   {
     id: "mamatha",
@@ -97,6 +104,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "MA",
     accent: "oklch(0.68 0.13 150)",
+    image: "/Ms. Mamatha AI and ML.jpg",
   },
   {
     id: "karthik-v",
@@ -109,6 +117,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "KV",
     accent: "oklch(0.6 0.12 90)",
+    image: "/Karthik-Mech-1-e1690266651386.jpg",
   },
   {
     id: "neha-lakhotia",
@@ -121,6 +130,7 @@ export const counsellors: Counsellor[] = [
     available: true,
     initials: "NL",
     accent: "oklch(0.66 0.13 15)",
+    image: "/Dr.-Neha-Lakhotia.jpg",
   },
 ];
 

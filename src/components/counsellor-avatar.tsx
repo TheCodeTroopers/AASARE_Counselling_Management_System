@@ -23,11 +23,23 @@ export function CounsellorAvatar({
         sizes[size],
         className,
       )}
-      style={{
-        background: `radial-gradient(circle at 30% 25%, oklch(0.85 0.05 80), ${counsellor.accent})`,
-      }}
+      style={
+        counsellor.image
+          ? undefined
+          : {
+              background: `radial-gradient(circle at 30% 25%, oklch(0.85 0.05 80), ${counsellor.accent})`,
+            }
+      }
     >
-      <span className="drop-shadow-sm">{counsellor.initials}</span>
+      {counsellor.image ? (
+        <img
+          src={counsellor.image}
+          alt={counsellor.name}
+          className="h-full w-full object-cover object-top"
+        />
+      ) : (
+        <span className="drop-shadow-sm">{counsellor.initials}</span>
+      )}
     </div>
   );
 }
