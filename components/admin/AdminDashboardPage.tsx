@@ -18,6 +18,25 @@ type RecentItem = {
   status: string;
 };
 
+const quickActions = [
+  {
+    label: "Invite a new counsellor",
+    href: "/admin/counsellors",
+  },
+  {
+    label: "Publish weekly schedule",
+    href: "/admin/schedules",
+  },
+  {
+    label: "Export appointment report",
+    href: "/admin/appointments",
+  },
+  {
+    label: "Broadcast announcement",
+    href: "/admin/settings",
+  },
+] as const;
+
 const statusStyles: Record<string, string> = {
   Confirmed: "bg-[#e9f3ea] text-[#2f6b3a] border-[#cfe3d1]",
   Approved: "bg-[#e9f3ea] text-[#2f6b3a] border-[#cfe3d1]",
@@ -143,7 +162,8 @@ export default function AdminDashboardPage() {
               Private & Confidential
             </div>
             <h2 className="mt-4 font-serif text-3xl md:text-4xl text-[#3b1219] leading-tight">
-              Welcome back to your <span className="italic text-[#c9a24a]">AASARE</span> console.
+              Welcome back to your{" "}
+              <span className="italic text-[#c9a24a]">AASARE</span> console.
             </h2>
             <p className="mt-2 text-sm text-[#6b4a3a] max-w-md">
               Manage counsellors, review schedules, and keep the cell running smoothly.
@@ -161,12 +181,16 @@ export default function AdminDashboardPage() {
             className="rounded-2xl border border-[#ece1cd] bg-white p-5 shadow-sm shadow-[#6b1e2b]/[0.03]"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs tracking-wide uppercase text-[#a08a76]">{label}</span>
+              <span className="text-xs tracking-wide uppercase text-[#a08a76]">
+                {label}
+              </span>
               <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#faf3e2] text-[#6b1e2b]">
                 <Icon className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 font-serif text-3xl text-[#3b1219]">{value}</div>
+            <div className="mt-3 font-serif text-3xl text-[#3b1219]">
+              {value}
+            </div>
             <div className="mt-1 text-xs text-[#7a5a4a]">{delta}</div>
           </div>
         ))}
