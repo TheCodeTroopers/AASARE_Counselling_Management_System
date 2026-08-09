@@ -1,4 +1,4 @@
-import { api } from './api-client';
+import { api } from "./api-client";
 
 export async function getProfile() {
   return api.get<{
@@ -7,9 +7,9 @@ export async function getProfile() {
     designation: string;
     email: string;
     phone: string;
-  }>('/profile');
+  }>("/profile");
 }
 
 export async function updateProfile(payload: unknown) {
-  return api.patch<unknown>('/profile', payload);
+  return api.patch<unknown>("/profile", payload);
 }

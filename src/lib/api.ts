@@ -1,8 +1,8 @@
 const API_BASE = import.meta.env.VITE_FASTAPI_URL || "http://127.0.0.1:8000/api";
 
 export async function fetchFromBackend(endpoint: string, options: RequestInit = {}) {
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem("aasare_token") : null;
-  
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("aasare_token") : null;
+
   const headers = new Headers(options.headers || {});
   if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");

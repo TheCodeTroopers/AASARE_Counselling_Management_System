@@ -1,318 +1,393 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
+    PostgrestVersion: "14.5";
+  };
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          action: string;
+          ip_address: string | null;
+          details: Json | null;
+          timestamp: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          action: string;
+          ip_address?: string | null;
+          details?: Json | null;
+          timestamp?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          action?: string;
+          ip_address?: string | null;
+          details?: Json | null;
+          timestamp?: string;
+        };
+        Relationships: [];
+      };
+      drive_connections: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          counsellor_email: string | null;
+          folder_name: string | null;
+          folder_id: string | null;
+          folder_url: string | null;
+          encrypted_refresh_token: string | null;
+          encrypted_access_token: string | null;
+          is_connected: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          counsellor_email?: string | null;
+          folder_name?: string | null;
+          folder_id?: string | null;
+          folder_url?: string | null;
+          encrypted_refresh_token?: string | null;
+          encrypted_access_token?: string | null;
+          is_connected?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          counsellor_email?: string | null;
+          folder_name?: string | null;
+          folder_id?: string | null;
+          folder_url?: string | null;
+          encrypted_refresh_token?: string | null;
+          encrypted_access_token?: string | null;
+          is_connected?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       counsellor_availability: {
         Row: {
-          id: string
-          counsellor_id: string
-          available_date: string
-          is_available: boolean
-          created_at: string
-          updated_at: string
-        }
+          id: string;
+          counsellor_id: string;
+          available_date: string;
+          is_available: boolean;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          counsellor_id: string
-          available_date: string
-          is_available?: boolean
-          created_at?: string
-          updated_at?: string
-        }
+          id?: string;
+          counsellor_id: string;
+          available_date: string;
+          is_available?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          counsellor_id?: string
-          available_date?: string
-          is_available?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          id?: string;
+          counsellor_id?: string;
+          available_date?: string;
+          is_available?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       counsellor_slots: {
         Row: {
-          id: string
-          counsellor_id: string
-          slot_time: string
-          available: boolean
-          created_at: string
-          updated_at: string
-        }
+          id: string;
+          counsellor_id: string;
+          slot_time: string;
+          available: boolean;
+          created_at: string;
+          updated_at: string;
+        };
         Insert: {
-          id?: string
-          counsellor_id: string
-          slot_time: string
-          available?: boolean
-          created_at?: string
-          updated_at?: string
-        }
+          id?: string;
+          counsellor_id: string;
+          slot_time: string;
+          available?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
         Update: {
-          id?: string
-          counsellor_id?: string
-          slot_time?: string
-          available?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
+          id?: string;
+          counsellor_id?: string;
+          slot_time?: string;
+          available?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       appointments: {
         Row: {
-          counsellor_id: string
-          created_at: string
-          date: string
-          id: string
-          reason: string
-          rejection_reason: string | null
-          slot_time: string
-          status: Database["public"]["Enums"]["appointment_status"]
-          updated_at: string
-          user_id: string
-        }
+          counsellor_id: string;
+          created_at: string;
+          date: string;
+          id: string;
+          reason: string;
+          rejection_reason: string | null;
+          slot_time: string;
+          status: Database["public"]["Enums"]["appointment_status"];
+          updated_at: string;
+          user_id: string;
+        };
         Insert: {
-          counsellor_id: string
-          created_at?: string
-          date: string
-          id?: string
-          reason: string
-          rejection_reason?: string | null
-          slot_time: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-          updated_at?: string
-          user_id: string
-        }
+          counsellor_id: string;
+          created_at?: string;
+          date: string;
+          id?: string;
+          reason: string;
+          rejection_reason?: string | null;
+          slot_time: string;
+          status?: Database["public"]["Enums"]["appointment_status"];
+          updated_at?: string;
+          user_id: string;
+        };
         Update: {
-          counsellor_id?: string
-          created_at?: string
-          date?: string
-          id?: string
-          reason?: string
-          rejection_reason?: string | null
-          slot_time?: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
+          counsellor_id?: string;
+          created_at?: string;
+          date?: string;
+          id?: string;
+          reason?: string;
+          rejection_reason?: string | null;
+          slot_time?: string;
+          status?: Database["public"]["Enums"]["appointment_status"];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
-          created_at: string
-          counsellor_slug: string | null
-          department: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          role: string | null
-          updated_at: string
-          usn: string | null
-          year: string | null
-        }
+          created_at: string;
+          counsellor_slug: string | null;
+          department: string | null;
+          email: string | null;
+          full_name: string | null;
+          id: string;
+          role: string | null;
+          updated_at: string;
+          usn: string | null;
+          year: string | null;
+        };
         Insert: {
-          created_at?: string
-          counsellor_slug?: string | null
-          department?: string | null
-          email?: string | null
-          full_name?: string | null
-          id: string
-          role?: string | null
-          updated_at?: string
-          usn?: string | null
-          year?: string | null
-        }
+          created_at?: string;
+          counsellor_slug?: string | null;
+          department?: string | null;
+          email?: string | null;
+          full_name?: string | null;
+          id: string;
+          role?: string | null;
+          updated_at?: string;
+          usn?: string | null;
+          year?: string | null;
+        };
         Update: {
-          created_at?: string
-          counsellor_slug?: string | null
-          department?: string | null
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          role?: string | null
-          updated_at?: string
-          usn?: string | null
-          year?: string | null
-        }
-        Relationships: []
-      }
-    }
+          created_at?: string;
+          counsellor_slug?: string | null;
+          department?: string | null;
+          email?: string | null;
+          full_name?: string | null;
+          id?: string;
+          role?: string | null;
+          updated_at?: string;
+          usn?: string | null;
+          year?: string | null;
+        };
+        Relationships: [];
+      };
+      case_sheets: {
+        Row: {
+          id: string;
+          counsellor_id: string;
+          client_name: string | null;
+          department: string | null;
+          reason_for_visit: string | null;
+          is_draft: boolean | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          counsellor_id: string;
+          client_name?: string | null;
+          department?: string | null;
+          reason_for_visit?: string | null;
+          is_draft?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          counsellor_id?: string;
+          client_name?: string | null;
+          department?: string | null;
+          reason_for_visit?: string | null;
+          is_draft?: boolean | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       get_booked_slots: {
-        Args: { _counsellor_id: string; _date: string }
+        Args: { _counsellor_id: string; _date: string };
         Returns: {
-          slot_time: string
-        }[]
-      }
+          slot_time: string;
+        }[];
+      };
       get_available_slots: {
-        Args: { _counsellor_id: string }
+        Args: { _counsellor_id: string };
         Returns: {
-          id: string
-          counsellor_id: string
-          slot_time: string
-          available: boolean
-        }[]
-      }
+          id: string;
+          counsellor_id: string;
+          slot_time: string;
+          available: boolean;
+        }[];
+      };
       get_unavailable_dates: {
-        Args: { _counsellor_id: string }
+        Args: { _counsellor_id: string };
         Returns: {
-          available_date: string
-        }[]
-      }
-      }
-    }
+          available_date: string;
+        }[];
+      };
+    };
     Enums: {
-      appointment_status:
-        | "pending"
-        | "approved"
-        | "rejected"
-        | "completed"
-        | "cancelled"
-    }
+      appointment_status: "pending" | "approved" | "rejected" | "completed" | "cancelled";
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
     Enums: {
-      appointment_status: [
-        "pending",
-        "approved",
-        "rejected",
-        "completed",
-        "cancelled",
-      ],
+      appointment_status: ["pending", "approved", "rejected", "completed", "cancelled"],
     },
   },
 } as const;

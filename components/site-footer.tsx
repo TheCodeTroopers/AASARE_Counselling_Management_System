@@ -4,7 +4,7 @@ import logo from "@/src/assets/smvitm-logo.jpg";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-border/60 bg-cream/60">
+    <footer className="mt-24 border-t border-border/60 bg-cream/60 print:hidden">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-4 md:px-8">
         <div className="md:col-span-2">
           <div className="flex items-center gap-3">
@@ -17,18 +17,29 @@ export function SiteFooter() {
             </div>
           </div>
           <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
-            Shri Madhwa Vadiraja Institute of Technology & Management. VTU affiliated,
-            VTU recognized. A quiet, confidential space where students meet trained
-            faculty counsellors.
+            Shri Madhwa Vadiraja Institute of Technology & Management. VTU affiliated, VTU
+            recognized. A quiet, confidential space where students meet trained faculty counsellors.
           </p>
         </div>
 
         <div>
           <p className="text-sm font-semibold text-foreground">Navigate</p>
           <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li><Link href="/counsellors" className="hover:text-primary">Counsellor Directory</Link></li>
-            <li><Link href="/my-appointments" className="hover:text-primary">My Appointments</Link></li>
-            <li><Link href="/about" className="hover:text-primary">About AASARE</Link></li>
+            <li>
+              <Link href="/counsellors" className="hover:text-primary">
+                Counsellor Directory
+              </Link>
+            </li>
+            <li>
+              <Link href="/my-appointments" className="hover:text-primary">
+                My Appointments
+              </Link>
+            </li>
+            <li>
+              <Link href="/about" className="hover:text-primary">
+                About AASARE
+              </Link>
+            </li>
           </ul>
         </div>
 

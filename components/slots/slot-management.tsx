@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useMemo } from 'react';
-import { Clock, Plus, Trash2, CheckCircle2, XCircle, CalendarDays, Ban } from 'lucide-react';
-import { toast } from 'sonner';
-import { SectionCard } from '@/components/common/section-card';
+import { useEffect, useState, useMemo } from "react";
+import { Clock, Plus, Trash2, CheckCircle2, XCircle, CalendarDays, Ban } from "lucide-react";
+import { toast } from "sonner";
+import { SectionCard } from "@/components/common/section-card";
+import { cn } from "@/lib/utils";
 import {
   fetchMySlots,
   upsertSlot,
@@ -13,7 +14,7 @@ import {
   toggleDateAvailability,
   type SlotRow,
   type DateAvailabilityRow,
-} from '@/lib/slots';
+} from "@/lib/slots";
 
 export type SlotItem = {
   id: string;
@@ -29,9 +30,9 @@ function getNext7Days() {
     d.setDate(now.getDate() + i);
     days.push({
       iso: d.toISOString().slice(0, 10),
-      dow: d.toLocaleDateString(undefined, { weekday: 'short' }),
+      dow: d.toLocaleDateString(undefined, { weekday: "short" }),
       day: String(d.getDate()),
-      month: d.toLocaleDateString(undefined, { month: 'short' }),
+      month: d.toLocaleDateString(undefined, { month: "short" }),
     });
   }
   return days;
@@ -40,7 +41,7 @@ function getNext7Days() {
 export function SlotManagement() {
   const [slots, setSlots] = useState<SlotItem[]>([]);
   const [counsellorSlug, setCounsellorSlug] = useState<string | null>(null);
-  const [newTime, setNewTime] = useState('09:00');
+  const [newTime, setNewTime] = useState("09:00");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -56,7 +57,7 @@ export function SlotManagement() {
         const slug = await getMyCounsellorSlug();
         setCounsellorSlug(slug);
         if (!slug) {
-          toast.error('Could not identify your counsellor profile. Please contact admin.');
+          toast.error("Could not identify your counsellor profile. Please contact admin.");
           return;
         }
 
@@ -74,7 +75,7 @@ export function SlotManagement() {
         setDateOverrides(map);
       } catch (err) {
         console.error(err);
-        toast.error('Failed to load settings. Please refresh.');
+        toast.error("Failed to load settings. Please refresh.");
       } finally {
         setLoading(false);
       }
@@ -84,11 +85,11 @@ export function SlotManagement() {
 
   // Format 24h string "14:30" → "02:30 PM"
   const formatTime12h = (time24: string) => {
-    if (!time24) return '10:00 AM';
-    const [hStr, mStr] = time24.split(':');
+    if (!time24) return "10:00 AM";
+    const [hStr, mStr] = time24.split(":");
     let h = parseInt(hStr, 10);
-    const m = mStr || '00';
-    const ampm = h >= 12 ? 'PM' : 'AM';
+    const m = mStr || "00";
+    const ampm = h >= 12 ? "PM" : "AM";
     h = h % 12 || 12;
     const formattedH = h < 10 ? `0${h}` : `${h}`;
     return `${formattedH}:${m} ${ampm}`;
@@ -96,12 +97,21 @@ export function SlotManagement() {
 
   const handleAddSlot = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTime) { toast.error('Please pick a valid time.'); return; }
-    if (!counsellorSlug) { toast.error('Counsellor profile not found.'); return; }
+    if (!newTime) {
+      toast.error("Please pick a valid time.");
+      return;
+    }
+    if (!counsellorSlug) {
+      toast.error("Counsellor profile not found.");
+      return;
+    }
 
     const formatted = formatTime12h(newTime);
     const exists = slots.some((s) => s.time.toLowerCase() === formatted.toLowerCase());
-    if (exists) { toast.error(`Slot ${formatted} already exists.`); return; }
+    if (exists) {
+      toast.error(`Slot ${formatted} already exists.`);
+      return;
+    }
 
     setSaving(true);
     try {
@@ -110,7 +120,7 @@ export function SlotManagement() {
       toast.success(`Created slot for ${formatted}`);
     } catch (err) {
       console.error(err);
-      toast.error('Failed to create slot. Please try again.');
+      toast.error("Failed to create slot. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -125,11 +135,13 @@ export function SlotManagement() {
     setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, available: newAvailable } : s)));
     try {
       await upsertSlot(counsellorSlug, target.time, newAvailable);
-      toast.success(`${target.time} marked as ${newAvailable ? 'Available' : 'Unavailable'}`);
+      toast.success(`${target.time} marked as ${newAvailable ? "Available" : "Unavailable"}`);
     } catch (err) {
       console.error(err);
-      setSlots((prev) => prev.map((s) => (s.id === id ? { ...s, available: target.available } : s)));
-      toast.error('Failed to update slot.');
+      setSlots((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, available: target.available } : s)),
+      );
+      toast.error("Failed to update slot.");
     }
   };
 
@@ -138,11 +150,11 @@ export function SlotManagement() {
     setSlots((prev) => prev.filter((s) => s.id !== id));
     try {
       await deleteSlot(id);
-      if (target) toast('Slot removed.');
+      if (target) toast("Slot removed.");
     } catch (err) {
       console.error(err);
       if (target) setSlots((prev) => [...prev, target]);
-      toast.error('Failed to delete slot.');
+      toast.error("Failed to delete slot.");
     }
   };
 
@@ -159,17 +171,19 @@ export function SlotManagement() {
       toast.success(
         newIsAvailable
           ? `Marked Available on ${dateISO}`
-          : `Marked Day Off / Unavailable on ${dateISO}`
+          : `Marked Day Off / Unavailable on ${dateISO}`,
       );
     } catch (err) {
       console.error(err);
       setDateOverrides((prev) => ({ ...prev, [dateISO]: currentIsAvailable }));
-      toast.error('Failed to update date availability.');
+      toast.error("Failed to update date availability.");
     }
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-sm text-slate-500">Loading slot & date settings…</div>;
+    return (
+      <div className="p-8 text-center text-sm text-slate-500">Loading slot & date settings…</div>
+    );
   }
 
   return (
@@ -189,8 +203,8 @@ export function SlotManagement() {
                 onClick={() => handleToggleDateAvailability(d.iso)}
                 className={`flex flex-col items-center justify-between rounded-2xl border p-3 text-center transition-all cursor-pointer ${
                   isAvailable
-                    ? 'border-emerald-200 bg-white hover:border-emerald-400 hover:shadow-md'
-                    : 'border-rose-200 bg-rose-50/70 hover:border-rose-400 opacity-90'
+                    ? "border-emerald-200 bg-white hover:border-emerald-400 hover:shadow-md"
+                    : "border-rose-200 bg-rose-50/70 hover:border-rose-400 opacity-90"
                 }`}
               >
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -198,16 +212,14 @@ export function SlotManagement() {
                 </div>
                 <div
                   className={`my-1 font-display text-2xl font-bold ${
-                    isAvailable ? 'text-slate-800' : 'text-rose-600 line-through'
+                    isAvailable ? "text-slate-800" : "text-rose-600 line-through"
                   }`}
                 >
                   {d.day}
                 </div>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    isAvailable
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-rose-100 text-rose-800'
+                    isAvailable ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
                   }`}
                 >
                   {isAvailable ? (
@@ -233,7 +245,7 @@ export function SlotManagement() {
       >
         <form onSubmit={handleAddSlot} className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1">
-            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[#6D214F]">
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-primary">
               Select Slot Time
             </label>
             <div className="relative">
@@ -243,7 +255,7 @@ export function SlotManagement() {
                 required
                 value={newTime}
                 onChange={(e) => setNewTime(e.target.value)}
-                className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] py-3 pl-10 pr-4 text-sm font-medium text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                className="w-full rounded-2xl border border-border bg-secondary py-3 pl-10 pr-4 text-sm font-medium text-text outline-none transition focus:ring-2 focus:ring-primary/40"
               />
             </div>
           </div>
@@ -252,9 +264,9 @@ export function SlotManagement() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#6D214F] px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#581a3f] active:scale-[0.98] cursor-pointer disabled:opacity-60"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-primary-hover active:scale-[0.98] cursor-pointer disabled:opacity-60"
             >
-              <Plus className="h-4 w-4" /> {saving ? 'Saving…' : 'Add Slot'}
+              <Plus className="h-4 w-4" /> {saving ? "Saving…" : "Add Slot"}
             </button>
           </div>
         </form>
@@ -272,7 +284,7 @@ export function SlotManagement() {
         </div>
 
         {slots.length === 0 ? (
-          <div className="rounded-[20px] border border-dashed border-[#E8DDD5] bg-[#F8F3EE] p-8 text-center text-sm text-slate-500">
+          <div className="rounded-[20px] border border-dashed border-border bg-secondary p-8 text-center text-sm text-slate-500">
             No slots configured yet. Use the option above to create a time slot.
           </div>
         ) : (
@@ -282,16 +294,16 @@ export function SlotManagement() {
                 key={slot.id}
                 className={`flex items-center justify-between rounded-[20px] border p-4 shadow-card transition-all duration-300 ${
                   slot.available
-                    ? 'border-[#E8DDD5] bg-white'
-                    : 'border-slate-200 bg-slate-50 opacity-75'
+                    ? "border-border bg-white"
+                    : "border-slate-200 bg-slate-50 opacity-75"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div
                     className={`grid h-10 w-10 place-items-center rounded-xl font-semibold text-xs ${
                       slot.available
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-slate-200 text-slate-600 border border-slate-300'
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        : "bg-slate-200 text-slate-600 border border-slate-300"
                     }`}
                   >
                     <Clock className="h-4 w-4" />
@@ -300,13 +312,17 @@ export function SlotManagement() {
                     <p className="font-semibold text-slate-900">{slot.time}</p>
                     <span
                       className={`inline-flex items-center gap-1 text-[11px] font-medium ${
-                        slot.available ? 'text-emerald-700' : 'text-slate-500'
+                        slot.available ? "text-emerald-700" : "text-slate-500"
                       }`}
                     >
                       {slot.available ? (
-                        <><CheckCircle2 className="h-3 w-3" /> Available</>
+                        <>
+                          <CheckCircle2 className="h-3 w-3" /> Available
+                        </>
                       ) : (
-                        <><XCircle className="h-3 w-3" /> Unavailable</>
+                        <>
+                          <XCircle className="h-3 w-3" /> Unavailable
+                        </>
                       )}
                     </span>
                   </div>
@@ -315,7 +331,7 @@ export function SlotManagement() {
                 <div className="flex items-center gap-3">
                   {/* Toggle Switch */}
                   <label
-                    title={slot.available ? 'Click to mark Unavailable' : 'Click to mark Available'}
+                    title={slot.available ? "Click to mark Unavailable" : "Click to mark Available"}
                     className="relative inline-flex items-center cursor-pointer"
                   >
                     <input
@@ -324,7 +340,14 @@ export function SlotManagement() {
                       onChange={() => handleToggleAvailable(slot.id)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#6D214F]"></div>
+                    <div
+                      className={cn(
+                        "w-11 h-6 rounded-full peer-focus:outline-none transition-colors peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all",
+                        slot.available
+                          ? "bg-primary after:border-white"
+                          : "bg-slate-300 after:border-slate-300",
+                      )}
+                    />
                   </label>
 
                   {/* Delete Slot Button */}

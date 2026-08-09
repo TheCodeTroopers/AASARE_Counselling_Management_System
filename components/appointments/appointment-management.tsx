@@ -1,76 +1,81 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Eye, Check, XCircle, FileText, Edit3 } from 'lucide-react';
-import { toast } from 'sonner';
-import { acceptAppointment, getAppointments, rejectAppointment } from '@/services/appointment.service';
-import { Button } from '@/components/common/button';
-import { SearchFilterBar } from '@/components/common/search-filter-bar';
-import { SectionCard } from '@/components/common/section-card';
-import { StatusBadge } from '@/components/common/status-badge';
-import { Modal } from '@/components/common/modal';
-import { LoadingSkeleton } from '@/components/common/loading-skeleton';
-import type { AppointmentItem } from '@/types/appointment';
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, Check, XCircle, FileText, Edit3 } from "lucide-react";
+import { toast } from "sonner";
+import {
+  acceptAppointment,
+  getAppointments,
+  rejectAppointment,
+} from "@/services/appointment.service";
+import { Button } from "@/components/common/button";
+import { SearchFilterBar } from "@/components/common/search-filter-bar";
+import { SectionCard } from "@/components/common/section-card";
+import { StatusBadge } from "@/components/common/status-badge";
+import { Modal } from "@/components/common/modal";
+import { LoadingSkeleton } from "@/components/common/loading-skeleton";
+import type { AppointmentItem } from "@/types/appointment";
 
-const tabs = ['all', 'pending', 'approved', 'rejected', 'completed'] as const;
+const tabs = ["all", "pending", "approved", "rejected", "completed"] as const;
 
 export function AppointmentManagement() {
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<(typeof tabs)[number]>('all');
-  const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null);
-  const [modalMode, setModalMode] = useState<'view' | 'reject'>('reject');
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<(typeof tabs)[number]>("all");
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentItem | null>(null);
+  const [modalMode, setModalMode] = useState<"view" | "reject">("reject");
+  const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['appointments'],
+    queryKey: ["appointments"],
     queryFn: getAppointments,
   });
 
-  const appointments = data?.data ?? [];
+  const appointmentsData = data?.data as AppointmentItem[] | undefined;
 
   const filteredAppointments = useMemo(() => {
-    return appointments.filter((appointment: any) => {
+    const list = appointmentsData ?? [];
+    return list.filter((appointment: AppointmentItem) => {
       const matchesSearch = [
         appointment.studentName,
         appointment.studentEmail,
         appointment.department,
         appointment.reasonPreview,
       ]
-        .join(' ')
+        .join(" ")
         .toLowerCase()
         .includes(search.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || appointment.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || appointment.status === statusFilter;
       return matchesSearch && matchesStatus;
     });
-  }, [appointments, search, statusFilter]);
+  }, [appointmentsData, search, statusFilter]);
 
-  const openRejectModal = (item: any) => {
+  const openRejectModal = (item: AppointmentItem) => {
     setSelectedAppointment(item);
-    setRejectionReason(item.rejectionReason || '');
-    setModalMode('reject');
+    setRejectionReason(item.rejectionReason || "");
+    setModalMode("reject");
   };
 
-  const openViewModal = (item: any) => {
+  const openViewModal = (item: AppointmentItem) => {
     setSelectedAppointment(item);
-    setModalMode('view');
+    setModalMode("view");
   };
 
   const handleAccept = async (id: string) => {
     setProcessingId(id);
     try {
       await acceptAppointment(id);
-      toast.success('Appointment approved successfully!');
+      toast.success("Appointment approved successfully!");
       if (selectedAppointment && selectedAppointment.id === id) {
         setSelectedAppointment(null);
       }
       await refetch();
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to approve appointment.');
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to approve appointment.");
     } finally {
       setProcessingId(null);
     }
@@ -78,17 +83,17 @@ export function AppointmentManagement() {
 
   const handleReject = async () => {
     if (!selectedAppointment) return;
-    const finalReason = rejectionReason.trim() || 'Slot unavailable';
+    const finalReason = rejectionReason.trim() || "Slot unavailable";
     setProcessingId(selectedAppointment.id);
     try {
       await rejectAppointment(selectedAppointment.id, finalReason);
-      toast.success('Appointment rejected with note.');
+      toast.success("Appointment rejected with note.");
       setSelectedAppointment(null);
-      setRejectionReason('');
+      setRejectionReason("");
       await refetch();
-      queryClient.invalidateQueries({ queryKey: ['appointments'] });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to reject appointment.');
+      queryClient.invalidateQueries({ queryKey: ["appointments"] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to reject appointment.");
     } finally {
       setProcessingId(null);
     }
@@ -97,17 +102,24 @@ export function AppointmentManagement() {
   if (isLoading) return <LoadingSkeleton rows={4} />;
   if (isError)
     return (
-      <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">
+      <div className="rounded-[20px] border border-border bg-white p-5 text-sm text-danger shadow-card">
         Unable to load appointments.
       </div>
     );
 
   return (
     <div className="space-y-4">
-      <SectionCard title="Appointment Management" subtitle="Search, filter, accept or reject counselling requests.">
+      <SectionCard
+        title="Appointment Management"
+        subtitle="Search, filter, accept or reject counselling requests."
+      >
         <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="w-full lg:max-w-md">
-            <SearchFilterBar value={search} onChange={setSearch} placeholder="Search by student, email or department" />
+            <SearchFilterBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Search by student, email or department"
+            />
           </div>
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => (
@@ -116,8 +128,8 @@ export function AppointmentManagement() {
                 onClick={() => setStatusFilter(tab)}
                 className={`rounded-2xl px-3 py-2 text-sm font-medium transition-all duration-300 capitalize ${
                   statusFilter === tab
-                    ? 'bg-[#6D214F] text-white shadow-sm'
-                    : 'bg-[#F8F3EE] text-[#6E6E6E] hover:text-[#6D214F]'
+                    ? "bg-primary text-white shadow-sm"
+                    : "bg-secondary text-text-secondary hover:text-primary"
                 }`}
               >
                 {tab}
@@ -127,10 +139,10 @@ export function AppointmentManagement() {
         </div>
 
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredAppointments.map((item: any) => (
+          {filteredAppointments.map((item: AppointmentItem) => (
             <div
               key={item.id}
-              className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1"
+              className="rounded-[20px] border border-border bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1"
             >
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
@@ -141,12 +153,12 @@ export function AppointmentManagement() {
                 </div>
                 <StatusBadge status={item.status} />
               </div>
-              <p className="text-sm font-medium text-[#6D214F]">
+              <p className="text-sm font-medium text-primary">
                 {item.appointmentDate} at {item.time}
               </p>
               <p className="mt-2 text-sm text-slate-700">{item.reasonPreview}</p>
 
-              {item.status === 'rejected' && item.rejectionReason && (
+              {item.status === "rejected" && item.rejectionReason && (
                 <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-rose-50 p-2.5 text-xs text-rose-800 border border-rose-200">
                   <div className="min-w-0 flex-1">
                     <span className="font-semibold">Rejection Note:</span> {item.rejectionReason}
@@ -163,7 +175,7 @@ export function AppointmentManagement() {
               )}
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {item.status === 'pending' && (
+                {item.status === "pending" && (
                   <>
                     <Button
                       variant="secondary"
@@ -186,7 +198,7 @@ export function AppointmentManagement() {
                   </>
                 )}
 
-                {item.status === 'approved' && (
+                {item.status === "approved" && (
                   <Button
                     variant="danger"
                     onClick={() => openRejectModal(item)}
@@ -197,8 +209,6 @@ export function AppointmentManagement() {
                     </span>
                   </Button>
                 )}
-
-
 
                 <Button variant="ghost" onClick={() => openViewModal(item)}>
                   <span className="flex items-center gap-1">
@@ -211,7 +221,7 @@ export function AppointmentManagement() {
         </div>
 
         {filteredAppointments.length === 0 ? (
-          <div className="mt-4 rounded-[20px] border border-dashed border-[#E8DDD5] bg-[#F8F3EE] p-8 text-center text-sm text-[#6E6E6E]">
+          <div className="mt-4 rounded-[20px] border border-dashed border-border bg-secondary p-8 text-center text-sm text-text-secondary">
             No appointments found for the selected filter.
           </div>
         ) : null}
@@ -219,18 +229,18 @@ export function AppointmentManagement() {
 
       <Modal
         open={Boolean(selectedAppointment)}
-        title={modalMode === 'reject' ? 'Reject Appointment Note' : 'Appointment Details'}
+        title={modalMode === "reject" ? "Reject Appointment Note" : "Appointment Details"}
         description={
-          modalMode === 'reject'
-            ? 'Enter the reason for rejection (this will be visible to the student).'
-            : 'Complete details of the counselling request.'
+          modalMode === "reject"
+            ? "Enter the reason for rejection (this will be visible to the student)."
+            : "Complete details of the counselling request."
         }
         onClose={() => {
           setSelectedAppointment(null);
-          setRejectionReason('');
+          setRejectionReason("");
         }}
       >
-        {modalMode === 'reject' ? (
+        {modalMode === "reject" ? (
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -241,7 +251,7 @@ export function AppointmentManagement() {
                 onChange={(event) => setRejectionReason(event.target.value)}
                 placeholder="e.g. Busy with department meeting / Please reschedule for another slot."
                 autoFocus
-                className="min-h-28 w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                className="min-h-28 w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
               />
             </div>
             <div className="flex justify-end gap-2">
@@ -258,17 +268,27 @@ export function AppointmentManagement() {
             <div className="space-y-4 text-sm text-slate-800">
               <div className="rounded-xl bg-slate-50 p-3">
                 <span className="font-semibold text-slate-500 uppercase text-xs">Student:</span>
-                <p className="text-base font-semibold text-[#6D214F]">{selectedAppointment.studentName}</p>
-                <p className="text-xs text-slate-600">{selectedAppointment.studentEmail} · {selectedAppointment.department}</p>
+                <p className="text-base font-semibold text-primary">
+                  {selectedAppointment.studentName}
+                </p>
+                <p className="text-xs text-slate-600">
+                  {selectedAppointment.studentEmail} · {selectedAppointment.department}
+                </p>
               </div>
 
               <div>
-                <span className="font-semibold text-slate-500 uppercase text-xs">Session Time:</span>
-                <p className="font-medium">{selectedAppointment.appointmentDate} at {selectedAppointment.time}</p>
+                <span className="font-semibold text-slate-500 uppercase text-xs">
+                  Session Time:
+                </span>
+                <p className="font-medium">
+                  {selectedAppointment.appointmentDate} at {selectedAppointment.time}
+                </p>
               </div>
 
               <div>
-                <span className="font-semibold text-slate-500 uppercase text-xs">Student's Request Reason:</span>
+                <span className="font-semibold text-slate-500 uppercase text-xs">
+                  Student's Request Reason:
+                </span>
                 <p className="mt-1 rounded-xl bg-slate-50 p-3 text-slate-700 border border-slate-200">
                   {selectedAppointment.reasonPreview}
                 </p>
@@ -276,7 +296,9 @@ export function AppointmentManagement() {
 
               {selectedAppointment.rejectionReason && (
                 <div>
-                  <span className="font-semibold text-rose-600 uppercase text-xs">Current Rejection Note:</span>
+                  <span className="font-semibold text-rose-600 uppercase text-xs">
+                    Current Rejection Note:
+                  </span>
                   <p className="mt-1 rounded-xl bg-rose-50 p-3 text-rose-700 border border-rose-200">
                     {selectedAppointment.rejectionReason}
                   </p>
@@ -287,8 +309,8 @@ export function AppointmentManagement() {
                 <Button
                   variant="danger"
                   onClick={() => {
-                    setRejectionReason(selectedAppointment.rejectionReason || '');
-                    setModalMode('reject');
+                    setRejectionReason(selectedAppointment.rejectionReason || "");
+                    setModalMode("reject");
                   }}
                 >
                   <span className="flex items-center gap-1">

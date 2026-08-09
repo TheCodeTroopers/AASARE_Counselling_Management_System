@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
@@ -80,8 +80,22 @@
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv01";
   }
-  h1, h2, h3, h4, .font-display {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
+  }
+}
+
+@media print {
+  header,
+  nav,
+  aside,
+  footer,
+  .print\:hidden {
+    display: none !important;
   }
 }

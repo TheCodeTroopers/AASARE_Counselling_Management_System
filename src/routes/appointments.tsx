@@ -1,10 +1,11 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { CalendarClock, MessageSquare, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
+import { useAuth } from "@/hooks/use-auth";
 import {
   cancelAppointment,
   fetchMyAppointments,
@@ -20,7 +21,10 @@ export const Route = createFileRoute("/appointments")({
   head: () => ({
     meta: [
       { title: "My Appointments — AASARE" },
-      { name: "description", content: "Track the status of your counselling appointments at SMVITM." },
+      {
+        name: "description",
+        content: "Track the status of your counselling appointments at SMVITM.",
+      },
     ],
   }),
 });
@@ -28,6 +32,14 @@ export const Route = createFileRoute("/appointments")({
 function AppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate({ to: "/auth" });
+    }
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     let mounted = true;
@@ -67,7 +79,9 @@ function AppointmentsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-5 py-14 md:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Your sessions</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+            Your sessions
+          </p>
           <h1 className="mt-2 font-display text-5xl text-primary md:text-6xl">My appointments</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Follow your requests as they move through pending, approved, completed, or cancelled.
@@ -145,7 +159,9 @@ function AppointmentCard({
   if (!c) return null;
   const canCancel = a.status === "pending" || a.status === "approved";
   const dateLabel = new Date(a.date).toLocaleDateString(undefined, {
-    weekday: "long", month: "long", day: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   });
   return (
     <article

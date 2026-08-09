@@ -34,7 +34,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const meta = routeMeta[activePath as keyof typeof routeMeta] ?? routeMeta["/admin"];
 
   return (
-    <div className="min-h-screen bg-[#fdfaf3] text-[#3b1219] flex">
+    <div className="min-h-screen bg-[#fdfaf3] text-admin-text flex">
       <AdminSidebar />
       <div className="flex-1 min-w-0 flex flex-col">
         <AdminHeader title={meta.title} subtitle={meta.subtitle} />

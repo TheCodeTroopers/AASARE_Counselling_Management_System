@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   User,
@@ -15,24 +15,24 @@ import {
   Save,
   CheckCircle2,
   Printer,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { createCase, saveDraft } from '@/services/case.service';
-import { SectionCard } from '@/components/common/section-card';
-import { Button } from '@/components/common/button';
+} from "lucide-react";
+import { toast } from "sonner";
+import { createCase, saveDraft } from "@/services/case.service";
+import { SectionCard } from "@/components/common/section-card";
+import { Button } from "@/components/common/button";
 
 export type CaseSheetData = {
   // 1. General Information
   clientName: string;
   age: string;
   gender: string;
-  roleInInstitution: 'Student' | 'Parent' | 'Faculty' | 'Staff';
+  roleInInstitution: "Student" | "Parent" | "Faculty" | "Staff";
   department: string;
   yearSemester: string;
   contactNumber: string;
   email: string;
   dateFirstInteraction: string;
-  referredBy: 'Self' | 'Faculty' | 'Peer' | 'Parent' | 'ICC' | 'Other';
+  referredBy: "Self" | "Faculty" | "Peer" | "Parent" | "ICC" | "Other";
   referredByOther: string;
 
   // 2. Reason for Visit
@@ -82,66 +82,66 @@ export type CaseSheetData = {
 };
 
 const initialFormData: CaseSheetData = {
-  clientName: '',
-  age: '',
-  gender: 'Select Gender',
-  roleInInstitution: 'Student',
-  department: '',
-  yearSemester: '',
-  contactNumber: '',
-  email: '',
+  clientName: "",
+  age: "",
+  gender: "Select Gender",
+  roleInInstitution: "Student",
+  department: "",
+  yearSemester: "",
+  contactNumber: "",
+  email: "",
   dateFirstInteraction: new Date().toISOString().slice(0, 10),
-  referredBy: 'Self',
-  referredByOther: '',
+  referredBy: "Self",
+  referredByOther: "",
 
-  reasonForVisit: '',
+  reasonForVisit: "",
 
-  familyBackground: '',
-  academicStressors: '',
-  peerChallenges: '',
-  recentMajorChanges: '',
-  physicalHealthIssues: '',
+  familyBackground: "",
+  academicStressors: "",
+  peerChallenges: "",
+  recentMajorChanges: "",
+  physicalHealthIssues: "",
 
   activeListening: false,
-  activeListeningNotes: '',
+  activeListeningNotes: "",
   emotionalSupport: false,
-  emotionalSupportNotes: '',
+  emotionalSupportNotes: "",
   stressManagementTips: false,
   stressTipsBreathing: false,
   stressTipsGrounding: false,
   stressTipsPositiveTalk: false,
-  stressTipsOther: '',
+  stressTipsOther: "",
   encouragedPeerFamilySupport: false,
-  peerFamilyNotes: '',
+  peerFamilyNotes: "",
   sharedCollegeHelpline: false,
-  helplineNotes: '',
+  helplineNotes: "",
   academicAdjustment: false,
-  academicAdjustmentNotes: '',
+  academicAdjustmentNotes: "",
   referralProfessionalHelp: false,
   referralICCCoordinator: false,
-  referralToDetails: '',
+  referralToDetails: "",
 
-  clientResponseObservations: '',
+  clientResponseObservations: "",
 
   isFollowupNeeded: false,
-  nextFollowupDate: '',
-  actionsPlanned: '',
-  supportRequiredICC: '',
+  nextFollowupDate: "",
+  actionsPlanned: "",
+  supportRequiredICC: "",
 
   consentInfoPolicy: true,
   consentVerbal: true,
-  iccSignatureName: '',
+  iccSignatureName: "",
   caseDate: new Date().toISOString().slice(0, 10),
 };
 
 const steps = [
-  '1. General Info',
-  '2. Reason for Visit',
-  '3. Background',
-  '4. First Aid Response',
-  '5. Observations',
-  '6. Follow-Up',
-  '7. Consent',
+  "1. General Info",
+  "2. Reason for Visit",
+  "3. Background",
+  "4. First Aid Response",
+  "5. Observations",
+  "6. Follow-Up",
+  "7. Consent",
 ];
 
 export function CaseWizardForm() {
@@ -150,7 +150,7 @@ export function CaseWizardForm() {
   const [formData, setFormData] = useState<CaseSheetData>(initialFormData);
   const [submitting, setSubmitting] = useState(false);
 
-  const updateField = (field: keyof CaseSheetData, value: any) => {
+  const updateField = (field: keyof CaseSheetData, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -158,9 +158,9 @@ export function CaseWizardForm() {
     setSubmitting(true);
     try {
       await saveDraft(formData);
-      toast.success('Draft saved successfully!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to save draft');
+      toast.success("Draft saved successfully!");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to save draft");
     } finally {
       setSubmitting(false);
     }
@@ -169,18 +169,18 @@ export function CaseWizardForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.clientName.trim()) {
-      toast.error('Please enter the Client Name in Step 1.');
+      toast.error("Please enter the Client Name in Step 1.");
       setStep(0);
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await createCase(formData);
-      toast.success('Case Sheet created successfully!');
-      router.push('/case-management');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to create case sheet');
+      await createCase(formData);
+      toast.success("Case Sheet created successfully!");
+      router.push("/case-management");
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to create case sheet");
     } finally {
       setSubmitting(false);
     }
@@ -189,19 +189,19 @@ export function CaseWizardForm() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       {/* Header Banner matching Case Sheet Official Header */}
-      <div className="rounded-3xl border border-[#E8DDD5] bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-border bg-white p-6 shadow-sm">
         <div className="text-center space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#C89B7B]">
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">
             SHRI MADHWA VADIRAJA INSTITUTE OF TECHNOLOGY AND MANAGEMENT (SMVITM)
           </p>
-          <h1 className="font-display text-2xl font-bold text-[#6D214F] md:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-primary md:text-3xl">
             AASARE — Institutional Counseling Cell
           </h1>
           <p className="text-sm font-medium text-slate-600">Case Sheet (Mental Health First Aid)</p>
         </div>
 
         {/* Step Indicator Pills */}
-        <div className="mt-6 flex flex-wrap justify-center gap-2 border-t border-[#F8F3EE] pt-4">
+        <div className="mt-6 flex flex-wrap justify-center gap-2 border-t border-secondary pt-4">
           {steps.map((label, idx) => (
             <button
               key={label}
@@ -209,10 +209,10 @@ export function CaseWizardForm() {
               onClick={() => setStep(idx)}
               className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition cursor-pointer ${
                 step === idx
-                  ? 'bg-[#6D214F] text-white shadow-sm'
+                  ? "bg-primary text-white shadow-sm"
                   : idx < step
-                  ? 'bg-[#ECF8EE] text-emerald-800 border border-emerald-200'
-                  : 'bg-[#F8F3EE] text-slate-600 hover:bg-slate-200'
+                    ? "bg-success-light text-emerald-800 border border-emerald-200"
+                    : "bg-secondary text-slate-600 hover:bg-slate-200"
               }`}
             >
               {label}
@@ -223,7 +223,10 @@ export function CaseWizardForm() {
 
       {/* Main Wizard Form Card */}
       <form onSubmit={handleSubmit}>
-        <SectionCard title={steps[step]} subtitle="Fill in the official Case Sheet fields accurately.">
+        <SectionCard
+          title={steps[step]}
+          subtitle="Fill in the official Case Sheet fields accurately."
+        >
           {/* STEP 1: General Information */}
           {step === 0 && (
             <div className="grid gap-4 md:grid-cols-2">
@@ -235,9 +238,9 @@ export function CaseWizardForm() {
                   type="text"
                   required
                   value={formData.clientName}
-                  onChange={(e) => updateField('clientName', e.target.value)}
+                  onChange={(e) => updateField("clientName", e.target.value)}
                   placeholder="Enter full name"
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -249,9 +252,9 @@ export function CaseWizardForm() {
                   <input
                     type="text"
                     value={formData.age}
-                    onChange={(e) => updateField('age', e.target.value)}
+                    onChange={(e) => updateField("age", e.target.value)}
                     placeholder="e.g. 20"
-                    className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                   />
                 </div>
                 <div>
@@ -260,8 +263,8 @@ export function CaseWizardForm() {
                   </label>
                   <select
                     value={formData.gender}
-                    onChange={(e) => updateField('gender', e.target.value)}
-                    className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F]"
+                    onChange={(e) => updateField("gender", e.target.value)}
+                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                   >
                     <option>Select Gender</option>
                     <option value="Male">Male</option>
@@ -276,14 +279,17 @@ export function CaseWizardForm() {
                   Role in Institution
                 </label>
                 <div className="flex flex-wrap gap-4 pt-1">
-                  {(['Student', 'Parent', 'Faculty', 'Staff'] as const).map((r) => (
-                    <label key={r} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  {(["Student", "Parent", "Faculty", "Staff"] as const).map((r) => (
+                    <label
+                      key={r}
+                      className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="roleInInstitution"
                         checked={formData.roleInInstitution === r}
-                        onChange={() => updateField('roleInInstitution', r)}
-                        className="accent-[#6D214F]"
+                        onChange={() => updateField("roleInInstitution", r)}
+                        className="accent-primary"
                       />
                       {r}
                     </label>
@@ -298,9 +304,9 @@ export function CaseWizardForm() {
                 <input
                   type="text"
                   value={formData.department}
-                  onChange={(e) => updateField('department', e.target.value)}
+                  onChange={(e) => updateField("department", e.target.value)}
                   placeholder="e.g. Computer Science & Engineering"
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -311,9 +317,9 @@ export function CaseWizardForm() {
                 <input
                   type="text"
                   value={formData.yearSemester}
-                  onChange={(e) => updateField('yearSemester', e.target.value)}
+                  onChange={(e) => updateField("yearSemester", e.target.value)}
                   placeholder="e.g. 3rd Year / 6th Sem"
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -324,9 +330,9 @@ export function CaseWizardForm() {
                 <input
                   type="text"
                   value={formData.contactNumber}
-                  onChange={(e) => updateField('contactNumber', e.target.value)}
+                  onChange={(e) => updateField("contactNumber", e.target.value)}
                   placeholder="+91 98xxxxxx00"
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -337,9 +343,9 @@ export function CaseWizardForm() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => updateField('email', e.target.value)}
+                  onChange={(e) => updateField("email", e.target.value)}
                   placeholder="client@sode-edu.in"
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -350,8 +356,8 @@ export function CaseWizardForm() {
                 <input
                   type="date"
                   value={formData.dateFirstInteraction}
-                  onChange={(e) => updateField('dateFirstInteraction', e.target.value)}
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  onChange={(e) => updateField("dateFirstInteraction", e.target.value)}
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -360,26 +366,29 @@ export function CaseWizardForm() {
                   Referred By
                 </label>
                 <div className="flex flex-wrap gap-4 pt-1">
-                  {(['Self', 'Faculty', 'Peer', 'Parent', 'ICC', 'Other'] as const).map((ref) => (
-                    <label key={ref} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
+                  {(["Self", "Faculty", "Peer", "Parent", "ICC", "Other"] as const).map((ref) => (
+                    <label
+                      key={ref}
+                      className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
+                    >
                       <input
                         type="radio"
                         name="referredBy"
                         checked={formData.referredBy === ref}
-                        onChange={() => updateField('referredBy', ref)}
-                        className="accent-[#6D214F]"
+                        onChange={() => updateField("referredBy", ref)}
+                        className="accent-primary"
                       />
                       {ref}
                     </label>
                   ))}
                 </div>
-                {formData.referredBy === 'Other' && (
+                {formData.referredBy === "Other" && (
                   <input
                     type="text"
                     value={formData.referredByOther}
-                    onChange={(e) => updateField('referredByOther', e.target.value)}
+                    onChange={(e) => updateField("referredByOther", e.target.value)}
                     placeholder="Mention who referred"
-                    className="mt-2 w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none"
+                    className="mt-2 w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
                   />
                 )}
               </div>
@@ -399,9 +408,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={6}
                   value={formData.reasonForVisit}
-                  onChange={(e) => updateField('reasonForVisit', e.target.value)}
+                  onChange={(e) => updateField("reasonForVisit", e.target.value)}
                   placeholder="Describe concerns expressed by client..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-4 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -417,9 +426,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={3}
                   value={formData.familyBackground}
-                  onChange={(e) => updateField('familyBackground', e.target.value)}
+                  onChange={(e) => updateField("familyBackground", e.target.value)}
                   placeholder="Notes on family structure, personal history..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -430,9 +439,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={3}
                   value={formData.academicStressors}
-                  onChange={(e) => updateField('academicStressors', e.target.value)}
+                  onChange={(e) => updateField("academicStressors", e.target.value)}
                   placeholder="Notes on exams, assignments, performance pressure..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -443,9 +452,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={3}
                   value={formData.peerChallenges}
-                  onChange={(e) => updateField('peerChallenges', e.target.value)}
+                  onChange={(e) => updateField("peerChallenges", e.target.value)}
                   placeholder="Notes on hostel life, peer relationships, social anxiety..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -456,9 +465,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={2}
                   value={formData.recentMajorChanges}
-                  onChange={(e) => updateField('recentMajorChanges', e.target.value)}
+                  onChange={(e) => updateField("recentMajorChanges", e.target.value)}
                   placeholder="Bereavement, illness, transition, sudden event..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -469,9 +478,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={2}
                   value={formData.physicalHealthIssues}
-                  onChange={(e) => updateField('physicalHealthIssues', e.target.value)}
+                  onChange={(e) => updateField("physicalHealthIssues", e.target.value)}
                   placeholder="Sleep issues, chronic illness, appetite, fatigue..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -486,13 +495,13 @@ export function CaseWizardForm() {
 
               <div className="space-y-3">
                 {/* Active Listening */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.activeListening}
-                      onChange={(e) => updateField('activeListening', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("activeListening", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Active Listening
                   </label>
@@ -500,21 +509,21 @@ export function CaseWizardForm() {
                     <input
                       type="text"
                       value={formData.activeListeningNotes}
-                      onChange={(e) => updateField('activeListeningNotes', e.target.value)}
+                      onChange={(e) => updateField("activeListeningNotes", e.target.value)}
                       placeholder="Describe active listening provided..."
-                      className="mt-2 w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                     />
                   )}
                 </div>
 
                 {/* Emotional Support */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.emotionalSupport}
-                      onChange={(e) => updateField('emotionalSupport', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("emotionalSupport", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Emotional Support
                   </label>
@@ -522,21 +531,21 @@ export function CaseWizardForm() {
                     <input
                       type="text"
                       value={formData.emotionalSupportNotes}
-                      onChange={(e) => updateField('emotionalSupportNotes', e.target.value)}
+                      onChange={(e) => updateField("emotionalSupportNotes", e.target.value)}
                       placeholder="Describe emotional support provided..."
-                      className="mt-2 w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                     />
                   )}
                 </div>
 
                 {/* Stress Management Tips */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.stressManagementTips}
-                      onChange={(e) => updateField('stressManagementTips', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("stressManagementTips", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Stress Management Tips
                   </label>
@@ -547,8 +556,8 @@ export function CaseWizardForm() {
                           <input
                             type="checkbox"
                             checked={formData.stressTipsBreathing}
-                            onChange={(e) => updateField('stressTipsBreathing', e.target.checked)}
-                            className="accent-[#6D214F]"
+                            onChange={(e) => updateField("stressTipsBreathing", e.target.checked)}
+                            className="accent-primary"
                           />
                           Breathing
                         </label>
@@ -556,8 +565,8 @@ export function CaseWizardForm() {
                           <input
                             type="checkbox"
                             checked={formData.stressTipsGrounding}
-                            onChange={(e) => updateField('stressTipsGrounding', e.target.checked)}
-                            className="accent-[#6D214F]"
+                            onChange={(e) => updateField("stressTipsGrounding", e.target.checked)}
+                            className="accent-primary"
                           />
                           Grounding
                         </label>
@@ -565,8 +574,10 @@ export function CaseWizardForm() {
                           <input
                             type="checkbox"
                             checked={formData.stressTipsPositiveTalk}
-                            onChange={(e) => updateField('stressTipsPositiveTalk', e.target.checked)}
-                            className="accent-[#6D214F]"
+                            onChange={(e) =>
+                              updateField("stressTipsPositiveTalk", e.target.checked)
+                            }
+                            className="accent-primary"
                           />
                           Positive Talk
                         </label>
@@ -574,22 +585,22 @@ export function CaseWizardForm() {
                       <input
                         type="text"
                         value={formData.stressTipsOther}
-                        onChange={(e) => updateField('stressTipsOther', e.target.value)}
+                        onChange={(e) => updateField("stressTipsOther", e.target.value)}
                         placeholder="Mention if other stress tips provided..."
-                        className="w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                       />
                     </div>
                   )}
                 </div>
 
                 {/* Encouraged Peer/Family Support */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.encouragedPeerFamilySupport}
-                      onChange={(e) => updateField('encouragedPeerFamilySupport', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("encouragedPeerFamilySupport", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Encouraged Peer / Family Support
                   </label>
@@ -597,34 +608,34 @@ export function CaseWizardForm() {
                     <input
                       type="text"
                       value={formData.peerFamilyNotes}
-                      onChange={(e) => updateField('peerFamilyNotes', e.target.value)}
+                      onChange={(e) => updateField("peerFamilyNotes", e.target.value)}
                       placeholder="Describe guidance given..."
-                      className="mt-2 w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                     />
                   )}
                 </div>
 
                 {/* Shared College Helpline Info */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.sharedCollegeHelpline}
-                      onChange={(e) => updateField('sharedCollegeHelpline', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("sharedCollegeHelpline", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Shared College Helpline / Mental Health Info
                   </label>
                 </div>
 
                 {/* Academic Adjustment/Faculty Coordination */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.academicAdjustment}
-                      onChange={(e) => updateField('academicAdjustment', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("academicAdjustment", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Academic Adjustment / Faculty Coordination
                   </label>
@@ -632,21 +643,21 @@ export function CaseWizardForm() {
                     <input
                       type="text"
                       value={formData.academicAdjustmentNotes}
-                      onChange={(e) => updateField('academicAdjustmentNotes', e.target.value)}
+                      onChange={(e) => updateField("academicAdjustmentNotes", e.target.value)}
                       placeholder="Describe faculty coordination arranged..."
-                      className="mt-2 w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                     />
                   )}
                 </div>
 
                 {/* Referral to Professional Help */}
-                <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-[#6D214F] cursor-pointer">
+                <div className="rounded-2xl border border-border bg-secondary p-3.5">
+                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.referralProfessionalHelp}
-                      onChange={(e) => updateField('referralProfessionalHelp', e.target.checked)}
-                      className="h-4 w-4 rounded accent-[#6D214F]"
+                      onChange={(e) => updateField("referralProfessionalHelp", e.target.checked)}
+                      className="h-4 w-4 rounded accent-primary"
                     />
                     Referral to Professional Help
                   </label>
@@ -656,17 +667,17 @@ export function CaseWizardForm() {
                         <input
                           type="checkbox"
                           checked={formData.referralICCCoordinator}
-                          onChange={(e) => updateField('referralICCCoordinator', e.target.checked)}
-                          className="accent-[#6D214F]"
+                          onChange={(e) => updateField("referralICCCoordinator", e.target.checked)}
+                          className="accent-primary"
                         />
                         Informed ICC Coordinator
                       </label>
                       <input
                         type="text"
                         value={formData.referralToDetails}
-                        onChange={(e) => updateField('referralToDetails', e.target.value)}
+                        onChange={(e) => updateField("referralToDetails", e.target.value)}
                         placeholder="Referred to (Doctor / External Psychiatrist / Specialist name)..."
-                        className="w-full rounded-xl border border-[#E8DDD5] bg-white p-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
                       />
                     </div>
                   )}
@@ -683,14 +694,15 @@ export function CaseWizardForm() {
                   Client Response and Observations
                 </label>
                 <p className="mb-2 text-xs italic text-slate-500">
-                  (Note how the client responded — e.g., relieved, emotional, withdrawn, open, receptive, etc.)
+                  (Note how the client responded — e.g., relieved, emotional, withdrawn, open,
+                  receptive, etc.)
                 </p>
                 <textarea
                   rows={6}
                   value={formData.clientResponseObservations}
-                  onChange={(e) => updateField('clientResponseObservations', e.target.value)}
+                  onChange={(e) => updateField("clientResponseObservations", e.target.value)}
                   placeholder="Record client's emotional state, demeanor, receptiveness during the session..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-4 text-sm text-[#2F2F2F] outline-none transition focus:border-[#6D214F] focus:ring-2 focus:ring-[#E8DDD5]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -699,13 +711,13 @@ export function CaseWizardForm() {
           {/* STEP 6: Follow-Up */}
           {step === 5 && (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-4">
-                <label className="flex items-center gap-3 font-semibold text-sm text-[#6D214F] cursor-pointer">
+              <div className="rounded-2xl border border-border bg-secondary p-4">
+                <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.isFollowupNeeded}
-                    onChange={(e) => updateField('isFollowupNeeded', e.target.checked)}
-                    className="h-4 w-4 rounded accent-[#6D214F]"
+                    onChange={(e) => updateField("isFollowupNeeded", e.target.checked)}
+                    className="h-4 w-4 rounded accent-primary"
                   />
                   Is follow-up needed? (Yes / No)
                 </label>
@@ -719,8 +731,8 @@ export function CaseWizardForm() {
                   <input
                     type="date"
                     value={formData.nextFollowupDate}
-                    onChange={(e) => updateField('nextFollowupDate', e.target.value)}
-                    className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none"
+                    onChange={(e) => updateField("nextFollowupDate", e.target.value)}
+                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
                   />
                 </div>
               )}
@@ -732,9 +744,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={3}
                   value={formData.actionsPlanned}
-                  onChange={(e) => updateField('actionsPlanned', e.target.value)}
+                  onChange={(e) => updateField("actionsPlanned", e.target.value)}
                   placeholder="Specific action items planned for client..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
 
@@ -745,9 +757,9 @@ export function CaseWizardForm() {
                 <textarea
                   rows={3}
                   value={formData.supportRequiredICC}
-                  onChange={(e) => updateField('supportRequiredICC', e.target.value)}
+                  onChange={(e) => updateField("supportRequiredICC", e.target.value)}
                   placeholder="Mention institutional support required..."
-                  className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none focus:border-[#6D214F]"
+                  className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
                 />
               </div>
             </div>
@@ -756,24 +768,30 @@ export function CaseWizardForm() {
           {/* STEP 7: Consent & Confidentiality */}
           {step === 6 && (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-4 space-y-3">
+              <div className="rounded-2xl border border-border bg-secondary p-4 space-y-3">
                 <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.consentInfoPolicy}
-                    onChange={(e) => updateField('consentInfoPolicy', e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded accent-[#6D214F]"
+                    onChange={(e) => updateField("consentInfoPolicy", e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded accent-primary"
                   />
-                  <span>The individual was informed about the nature of support and the confidentiality policy.</span>
+                  <span>
+                    The individual was informed about the nature of support and the confidentiality
+                    policy.
+                  </span>
                 </label>
                 <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.consentVerbal}
-                    onChange={(e) => updateField('consentVerbal', e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded accent-[#6D214F]"
+                    onChange={(e) => updateField("consentVerbal", e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded accent-primary"
                   />
-                  <span>Verbal consent was taken to proceed with first aid support and basic documentation.</span>
+                  <span>
+                    Verbal consent was taken to proceed with first aid support and basic
+                    documentation.
+                  </span>
                 </label>
               </div>
 
@@ -785,9 +803,9 @@ export function CaseWizardForm() {
                   <input
                     type="text"
                     value={formData.iccSignatureName}
-                    onChange={(e) => updateField('iccSignatureName', e.target.value)}
+                    onChange={(e) => updateField("iccSignatureName", e.target.value)}
                     placeholder="Dr. Deepika B V / SWO Counsellor Name"
-                    className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none"
+                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
                   />
                 </div>
                 <div>
@@ -797,8 +815,8 @@ export function CaseWizardForm() {
                   <input
                     type="date"
                     value={formData.caseDate}
-                    onChange={(e) => updateField('caseDate', e.target.value)}
-                    className="w-full rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] p-3 text-sm outline-none"
+                    onChange={(e) => updateField("caseDate", e.target.value)}
+                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
                   />
                 </div>
               </div>
@@ -806,7 +824,7 @@ export function CaseWizardForm() {
           )}
 
           {/* Navigation & Action Footer */}
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#F8F3EE] pt-5">
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-secondary pt-5">
             <div className="flex gap-2">
               {step > 0 && (
                 <Button variant="ghost" type="button" onClick={() => setStep((s) => s - 1)}>
@@ -820,7 +838,7 @@ export function CaseWizardForm() {
                 type="button"
                 onClick={handleSaveDraftClick}
                 disabled={submitting}
-                className="inline-flex items-center gap-1.5 rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] px-4 py-2.5 text-sm font-semibold text-[#6D214F] hover:bg-slate-200 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-2xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-slate-200 transition cursor-pointer"
               >
                 <Save className="h-4 w-4" /> Save Draft
               </button>
@@ -829,7 +847,7 @@ export function CaseWizardForm() {
                 <button
                   type="button"
                   onClick={() => setStep((s) => s + 1)}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D214F] px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-[#581a3f] cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-primary-hover cursor-pointer"
                 >
                   Next <ArrowRight className="h-4 w-4" />
                 </button>

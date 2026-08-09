@@ -1,7 +1,16 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, CalendarDays, Clock3, Download, Search, X, Trash2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  CalendarDays,
+  Clock3,
+  Download,
+  Search,
+  X,
+  Trash2,
+} from "lucide-react";
 
 const days = ["Mon 22", "Tue 23", "Wed 24", "Thu 25", "Fri 26"];
 const hours = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00"];
@@ -18,7 +27,13 @@ type Slot = {
 const initialSlots: Slot[] = [
   { day: 0, hour: 1, counsellor: "Dr. Deepika B V", student: "Neha R.", status: "Confirmed" },
   { day: 0, hour: 4, counsellor: "Ms. Savitha A Shenoy", student: "Arjun P.", status: "Pending" },
-  { day: 1, hour: 2, counsellor: "Dr. Subbulakshmi N Karanth", student: "Riya S.", status: "Confirmed" },
+  {
+    day: 1,
+    hour: 2,
+    counsellor: "Dr. Subbulakshmi N Karanth",
+    student: "Riya S.",
+    status: "Confirmed",
+  },
   { day: 2, hour: 3, counsellor: "Ms. Shashikala R", student: "Kiran M.", status: "Rescheduled" },
   { day: 3, hour: 0, counsellor: "Dr. Deepika B V", student: "Ishaan T.", status: "Confirmed" },
   { day: 4, hour: 5, counsellor: "Ms. Ashwitha C Thomas", student: "Aditi V.", status: "Pending" },
@@ -26,9 +41,9 @@ const initialSlots: Slot[] = [
 ];
 
 const statusStyles: Record<Status, string> = {
-  Confirmed: "bg-[#f4ecdc] border-[#e6cfa8] text-[#3b1219]",
-  Pending: "bg-[#faf3e2] border-[#ecdcb0] text-[#8a6a1f]",
-  Rescheduled: "bg-[#f5e8ea] border-[#e9c9ce] text-[#6b1e2b]",
+  Confirmed: "bg-[#f4ecdc] border-[#e6cfa8] text-admin-text",
+  Pending: "bg-admin-bg border-[#ecdcb0] text-[#8a6a1f]",
+  Rescheduled: "bg-[#f5e8ea] border-[#e9c9ce] text-admin-primary",
 };
 
 const statusOptions: Array<Status | "All"> = ["All", "Confirmed", "Pending", "Rescheduled"];
@@ -37,12 +52,15 @@ export default function ViewSchedulesPage() {
   const [slots, setSlots] = useState<Slot[]>(initialSlots);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<(typeof statusOptions)[number]>("All");
-  const [editing, setEditing] = useState<{ slot: Slot | null; day: number; hour: number } | null>(null);
+  const [editing, setEditing] = useState<{ slot: Slot | null; day: number; hour: number } | null>(
+    null,
+  );
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return slots.filter((s) => {
-      const matchesQ = !q || s.counsellor.toLowerCase().includes(q) || s.student.toLowerCase().includes(q);
+      const matchesQ =
+        !q || s.counsellor.toLowerCase().includes(q) || s.student.toLowerCase().includes(q);
       const matchesS = statusFilter === "All" || s.status === statusFilter;
       return matchesQ && matchesS;
     });
@@ -92,13 +110,13 @@ export default function ViewSchedulesPage() {
     <>
       {/* Controls */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center gap-1 rounded-full border border-[#e9dfd0] bg-white p-1">
+        <div className="inline-flex items-center gap-1 rounded-full border border-admin-border bg-white p-1">
           {["Day", "Week", "Month"].map((v, i) => (
             <button
               key={v}
               className={[
                 "px-3 py-1.5 text-xs rounded-full",
-                i === 1 ? "bg-[#6b1e2b] text-[#faf3e2]" : "text-[#4a2b30] hover:bg-[#faf3e2]",
+                i === 1 ? "bg-admin-primary text-admin-bg" : "text-[#4a2b30] hover:bg-admin-bg",
               ].join(" ")}
             >
               {v}
@@ -106,33 +124,33 @@ export default function ViewSchedulesPage() {
           ))}
         </div>
 
-        <div className="inline-flex items-center gap-2 rounded-full border border-[#e9dfd0] bg-white px-3 py-1.5">
-          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-[#faf3e2]">
-            <ChevronLeft className="h-4 w-4 text-[#6b1e2b]" />
+        <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5">
+          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg">
+            <ChevronLeft className="h-4 w-4 text-admin-primary" />
           </button>
-          <span className="text-xs font-medium text-[#3b1219] flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5 text-[#8a6a55]" />
+          <span className="text-xs font-medium text-admin-text flex items-center gap-1.5">
+            <CalendarDays className="h-3.5 w-3.5 text-admin-muted" />
             22 – 26 Sep, 2025
           </span>
-          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-[#faf3e2]">
-            <ChevronRight className="h-4 w-4 text-[#6b1e2b]" />
+          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg">
+            <ChevronRight className="h-4 w-4 text-admin-primary" />
           </button>
         </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-[#e9dfd0] bg-white px-3 py-1.5 w-full md:w-64">
-          <Search className="h-4 w-4 text-[#a08a76]" />
+        <div className="flex items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5 w-full md:w-64">
+          <Search className="h-4 w-4 text-admin-subtle" />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search counsellor or student…"
-            className="w-full bg-transparent text-xs text-[#3b1219] placeholder:text-[#b39c86] outline-none"
+            className="w-full bg-transparent text-xs text-admin-text placeholder:text-[#b39c86] outline-none"
           />
         </div>
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as (typeof statusOptions)[number])}
-          className="rounded-full border border-[#e9dfd0] bg-white px-3 py-1.5 text-xs text-[#3b1219]"
+          className="rounded-full border border-admin-border bg-white px-3 py-1.5 text-xs text-admin-text"
         >
           {statusOptions.map((s) => (
             <option key={s} value={s}>
@@ -143,7 +161,7 @@ export default function ViewSchedulesPage() {
 
         <button
           onClick={exportCsv}
-          className="ml-auto inline-flex items-center gap-2 rounded-full bg-[#6b1e2b] px-4 py-1.5 text-xs font-medium text-[#faf3e2] hover:bg-[#5a1723]"
+          className="ml-auto inline-flex items-center gap-2 rounded-full bg-admin-primary px-4 py-1.5 text-xs font-medium text-admin-bg hover:bg-admin-primary-hover"
         >
           <Download className="h-3.5 w-3.5" />
           Export CSV
@@ -151,13 +169,13 @@ export default function ViewSchedulesPage() {
       </div>
 
       {/* Grid */}
-      <div className="mt-5 overflow-hidden rounded-2xl border border-[#ece1cd] bg-white shadow-sm">
+      <div className="mt-5 overflow-hidden rounded-2xl border border-admin-border-dark bg-white shadow-sm">
         <div className="grid" style={{ gridTemplateColumns: `80px repeat(${days.length}, 1fr)` }}>
-          <div className="bg-[#faf3e2] border-b border-[#f0e5d3]" />
+          <div className="bg-admin-bg border-b border-[#f0e5d3]" />
           {days.map((d) => (
             <div
               key={d}
-              className="bg-[#faf3e2] border-b border-l border-[#f0e5d3] px-3 py-2 text-xs font-medium text-[#3b1219]"
+              className="bg-admin-bg border-b border-l border-[#f0e5d3] px-3 py-2 text-xs font-medium text-admin-text"
             >
               {d}
             </div>
@@ -165,7 +183,7 @@ export default function ViewSchedulesPage() {
 
           {hours.map((h, rowIdx) => (
             <Fragment key={`row-${h}`}>
-              <div className="border-b border-[#f4ebd9] px-3 py-6 text-[11px] text-[#8a6a55] flex items-start gap-1">
+              <div className="border-b border-[#f4ebd9] px-3 py-6 text-[11px] text-admin-muted flex items-start gap-1">
                 <Clock3 className="h-3 w-3 mt-0.5" />
                 {h}
               </div>
@@ -188,7 +206,7 @@ export default function ViewSchedulesPage() {
                       </div>
                     )}
                     {slot && !isVisible && (
-                      <div className="h-full rounded-lg border border-dashed border-[#e9dfd0] opacity-40" />
+                      <div className="h-full rounded-lg border border-dashed border-admin-border opacity-40" />
                     )}
                   </button>
                 );
@@ -202,12 +220,18 @@ export default function ViewSchedulesPage() {
       <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total Sessions", value: String(slots.length) },
-          { label: "Utilisation", value: `${Math.round((slots.length / (days.length * hours.length)) * 100)}%` },
+          {
+            label: "Utilisation",
+            value: `${Math.round((slots.length / (days.length * hours.length)) * 100)}%`,
+          },
           { label: "Free Slots", value: String(days.length * hours.length - slots.length) },
         ].map((s) => (
-          <div key={s.label} className="rounded-2xl border border-[#ece1cd] bg-white p-5 shadow-sm">
-            <div className="text-xs tracking-wide uppercase text-[#a08a76]">{s.label}</div>
-            <div className="mt-2 font-serif text-2xl text-[#3b1219]">{s.value}</div>
+          <div
+            key={s.label}
+            className="rounded-2xl border border-admin-border-dark bg-white p-5 shadow-sm"
+          >
+            <div className="text-xs tracking-wide uppercase text-admin-subtle">{s.label}</div>
+            <div className="mt-2 font-serif text-2xl text-admin-text">{s.value}</div>
           </div>
         ))}
       </div>
@@ -253,50 +277,61 @@ function EditSlotModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-[#3b1219]/40 px-4">
-      <form onSubmit={submit} className="w-full max-w-md rounded-2xl border border-[#ece1cd] bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 grid place-items-center bg-admin-text/40 px-4">
+      <form
+        onSubmit={submit}
+        className="w-full max-w-md rounded-2xl border border-admin-border-dark bg-white shadow-xl"
+      >
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#f0e5d3]">
           <div>
-            <h3 className="font-serif text-xl text-[#3b1219]">{slot ? "Edit Slot" : "Add Slot"}</h3>
-            <p className="text-xs text-[#8a6a55]">
+            <h3 className="font-serif text-xl text-admin-text">
+              {slot ? "Edit Slot" : "Add Slot"}
+            </h3>
+            <p className="text-xs text-admin-muted">
               {days[day]} · {hours[hour]}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-full hover:bg-[#faf3e2] text-[#6b1e2b]"
+            className="grid h-8 w-8 place-items-center rounded-full hover:bg-admin-bg text-admin-primary"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="px-6 py-5 space-y-4">
           <label className="block">
-            <span className="block text-[11px] tracking-[0.14em] uppercase text-[#8a6a55] mb-1.5">Counsellor *</span>
+            <span className="block text-[11px] tracking-[0.14em] uppercase text-admin-muted mb-1.5">
+              Counsellor *
+            </span>
             <input
               required
               value={form.counsellor}
               onChange={(e) => setForm({ ...form, counsellor: e.target.value })}
               placeholder="Dr. Deepika B V"
-              className="w-full border border-[#e9dfd0] bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-[#6b1e2b]"
+              className="w-full border border-admin-border bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-admin-primary"
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] tracking-[0.14em] uppercase text-[#8a6a55] mb-1.5">Student *</span>
+            <span className="block text-[11px] tracking-[0.14em] uppercase text-admin-muted mb-1.5">
+              Student *
+            </span>
             <input
               required
               value={form.student}
               onChange={(e) => setForm({ ...form, student: e.target.value })}
               placeholder="Neha R."
-              className="w-full border border-[#e9dfd0] bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-[#6b1e2b]"
+              className="w-full border border-admin-border bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-admin-primary"
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] tracking-[0.14em] uppercase text-[#8a6a55] mb-1.5">Status</span>
+            <span className="block text-[11px] tracking-[0.14em] uppercase text-admin-muted mb-1.5">
+              Status
+            </span>
             <select
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Status })}
-              className="w-full border border-[#e9dfd0] bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-[#6b1e2b]"
+              className="w-full border border-admin-border bg-white rounded-xl px-3 py-2 text-sm outline-none focus:border-admin-primary"
             >
               <option>Confirmed</option>
               <option>Pending</option>
@@ -310,7 +345,7 @@ function EditSlotModal({
               <button
                 type="button"
                 onClick={onDelete}
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#e9c9ce] bg-white px-3 py-2 text-xs text-[#6b1e2b] hover:bg-[#f5e8ea]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#e9c9ce] bg-white px-3 py-2 text-xs text-admin-primary hover:bg-[#f5e8ea]"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 Remove
@@ -321,13 +356,13 @@ function EditSlotModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-full border border-[#e9dfd0] bg-white px-4 py-2 text-sm text-[#3b1219] hover:bg-[#faf3e2]"
+              className="rounded-full border border-admin-border bg-white px-4 py-2 text-sm text-admin-text hover:bg-admin-bg"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="rounded-full bg-[#6b1e2b] px-4 py-2 text-sm font-medium text-[#faf3e2] hover:bg-[#5a1723]"
+              className="rounded-full bg-admin-primary px-4 py-2 text-sm font-medium text-admin-bg hover:bg-admin-primary-hover"
             >
               Save Slot
             </button>

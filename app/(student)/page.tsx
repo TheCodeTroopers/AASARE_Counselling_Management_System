@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { ArrowRight, CalendarClock, Lock, HeartHandshake, Sparkles } from "lucide-react";
@@ -23,13 +23,13 @@ export default function StudentHomePage() {
                 <Sparkles className="h-3.5 w-3.5 text-primary" /> A safe space at SMVITM
               </span>
               <h1 className="mt-6 text-balance font-display text-5xl leading-[1.05] text-primary md:text-6xl lg:text-7xl">
-                A quiet room, <em className="font-normal italic text-gold">whenever</em> you need one.
+                A quiet room, <em className="font-normal italic text-gold">whenever</em> you need
+                one.
               </h1>
               <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
-                AASARE is the Institutional Counselling Cell of SMVITM. Browse our
-                faculty counsellors, view open slots, and book a private
-                appointment — all in a few taps. Whatever you're carrying, you
-                don't have to carry it alone.
+                AASARE is the Institutional Counselling Cell of SMVITM. Browse our faculty
+                counsellors, view open slots, and book a private appointment — all in a few taps.
+                Whatever you're carrying, you don't have to carry it alone.
               </p>
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <Link
@@ -47,9 +47,15 @@ export default function StudentHomePage() {
                 </Link>
               </div>
               <div className="mt-10 flex items-center gap-6 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2"><Lock className="h-4 w-4 text-gold" /> Confidential</div>
-                <div className="flex items-center gap-2"><HeartHandshake className="h-4 w-4 text-gold" /> Faculty-led</div>
-                <div className="flex items-center gap-2"><CalendarClock className="h-4 w-4 text-gold" /> Same-week slots</div>
+                <div className="flex items-center gap-2">
+                  <Lock className="h-4 w-4 text-gold" /> Confidential
+                </div>
+                <div className="flex items-center gap-2">
+                  <HeartHandshake className="h-4 w-4 text-gold" /> Faculty-led
+                </div>
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-4 w-4 text-gold" /> Same-week slots
+                </div>
               </div>
             </div>
 
@@ -58,7 +64,9 @@ export default function StudentHomePage() {
               <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-gradient-to-br from-gold/25 via-transparent to-primary/15 blur-2xl" />
               <div className="relative rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-primary/10">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today's availability</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Today's availability
+                  </p>
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_oklch(0.9_0.15_150/0.35)]" />
                 </div>
                 <div className="mt-5 space-y-3">
@@ -137,7 +145,9 @@ export default function StudentHomePage() {
             <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/30 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
             <div className="relative max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">Ready when you are</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-gold">
+                Ready when you are
+              </p>
               <h2 className="mt-4 font-display text-4xl leading-tight text-primary-foreground md:text-5xl">
                 Reaching out is the hardest step. We'll take it with you.
               </h2>

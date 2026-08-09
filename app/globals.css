@@ -5,39 +5,39 @@
 @source "../src/**/*.{ts,tsx}";
 
 @theme {
-  --color-primary: #6D214F;
-  --color-primary-foreground: #FCFAF8;
-  --color-secondary: #F8F3EE;
-  --color-secondary-foreground: #6D214F;
-  --color-gold: #E5B842;
-  --color-gold-foreground: #2F2F2F;
-  --color-cream: #F8F3EE;
-  --color-muted: #F4EBE1;
-  --color-muted-foreground: #7E6E65;
-  --color-accent: #C89B7B;
-  --color-accent-foreground: #FCFAF8;
-  --color-background: #FCFAF8;
-  --color-foreground: #2F2F2F;
-  --color-card: #FFFFFF;
-  --color-card-foreground: #2F2F2F;
-  --color-border: #E8DDD5;
+  --color-primary: #6d214f;
+  --color-primary-foreground: #fcfaf8;
+  --color-secondary: #f8f3ee;
+  --color-secondary-foreground: #6d214f;
+  --color-gold: #e5b842;
+  --color-gold-foreground: #2f2f2f;
+  --color-cream: #f8f3ee;
+  --color-muted: #f4ebe1;
+  --color-muted-foreground: #7e6e65;
+  --color-accent: #c89b7b;
+  --color-accent-foreground: #fcfaf8;
+  --color-background: #fcfaf8;
+  --color-foreground: #2f2f2f;
+  --color-card: #ffffff;
+  --color-card-foreground: #2f2f2f;
+  --color-border: #e8ddd5;
 }
 
 :root {
   color-scheme: light;
-  --primary: #6D214F;
-  --primary-foreground: #FCFAF8;
-  --secondary: #F8F3EE;
-  --secondary-foreground: #6D214F;
-  --gold: #E5B842;
-  --gold-foreground: #2F2F2F;
-  --muted: #F4EBE1;
-  --muted-foreground: #7E6E65;
-  --background: #FCFAF8;
-  --foreground: #2F2F2F;
-  --card: #FFFFFF;
-  --card-foreground: #2F2F2F;
-  --border: #E8DDD5;
+  --primary: #6d214f;
+  --primary-foreground: #fcfaf8;
+  --secondary: #f8f3ee;
+  --secondary-foreground: #6d214f;
+  --gold: #e5b842;
+  --gold-foreground: #2f2f2f;
+  --muted: #f4ebe1;
+  --muted-foreground: #7e6e65;
+  --background: #fcfaf8;
+  --foreground: #2f2f2f;
+  --card: #ffffff;
+  --card-foreground: #2f2f2f;
+  --border: #e8ddd5;
 }
 
 * {
@@ -77,4 +77,14 @@ select {
 ::-webkit-scrollbar-thumb {
   background: #c89b7b;
   border-radius: 9999px;
+}
+
+@media print {
+  header,
+  nav,
+  aside,
+  footer,
+  .print\:hidden {
+    display: none !important;
+  }
 }

@@ -61,26 +61,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resolvedRole = "admin";
       }
 
-      console.log(`[Auth Debug] User: ${u.email} | DB Role: ${dbRole} | Meta Role: ${userMetaRole} => Resolved Role: ${resolvedRole}`);
+      console.log(
+        `[Auth Debug] User: ${u.email} | DB Role: ${dbRole} | Meta Role: ${userMetaRole} => Resolved Role: ${resolvedRole}`,
+      );
 
-      setProfile({
+      const userProfileObj: UserProfile = {
         id: u.id,
         email: u.email || "",
-        full_name: data?.full_name || u.user_metadata?.full_name || u.user_metadata?.name || u.email || "",
+        full_name:
+          data?.full_name || u.user_metadata?.full_name || u.user_metadata?.name || u.email || "",
         usn: data?.usn || u.user_metadata?.usn,
         department: data?.department || u.user_metadata?.department,
         year: data?.year || u.user_metadata?.year,
         role: resolvedRole,
-      });
+      };
+
+      setProfile(userProfileObj);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("aasare_user_profile", JSON.stringify(userProfileObj));
+      }
       return resolvedRole;
     } catch (err) {
       console.error("[Auth Error] Profile fetch error:", err);
-      setProfile({
+      const fallbackObj: UserProfile = {
         id: u.id,
         email: u.email || "",
         full_name: u.user_metadata?.full_name || u.email || "",
         role: "student",
-      });
+      };
+      setProfile(fallbackObj);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("aasare_user_profile", JSON.stringify(fallbackObj));
+      }
       return "student" as UserRole;
     }
   }
@@ -90,6 +102,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function initAuth() {
       setLoading(true);
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem("aasare_user_profile");
+        if (cached) {
+          try {
+            setProfile(JSON.parse(cached));
+          } catch {
+            // Ignore JSON parse errors
+          }
+        }
+      }
       const { data } = await supabase.auth.getSession();
       const currentSession = data.session;
       if (mounted) {
@@ -98,6 +120,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchProfile(currentSession.user);
         } else {
           setProfile(null);
+          if (typeof window !== "undefined") {
+            localStorage.removeItem("aasare_user_profile");
+          }
         }
         setLoading(false);
       }
@@ -112,6 +137,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchProfile(s.user);
       } else {
         setProfile(null);
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("aasare_user_profile");
+        }
       }
       setLoading(false);
     });
@@ -122,7 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const role: UserRole = profile?.role || (session?.user?.user_metadata?.role as UserRole) || "student";
+  const role: UserRole =
+    profile?.role || (session?.user?.user_metadata?.role as UserRole) || "student";
 
   const value: AuthContextValue = {
     session,
@@ -136,6 +165,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       await supabase.auth.signOut();
       setProfile(null);
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("aasare_user_profile");
+      }
     },
     refreshProfile: async () => {
       if (session?.user) {

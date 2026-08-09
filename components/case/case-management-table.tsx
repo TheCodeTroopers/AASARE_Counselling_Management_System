@@ -1,34 +1,38 @@
-'use client';
+"use client";
 
-import { useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { Eye, Plus, Trash2, FileText } from 'lucide-react';
-import { toast } from 'sonner';
-import { getAllCases, deleteCase } from '@/services/case.service';
-import { SearchFilterBar } from '@/components/common/search-filter-bar';
-import { SectionCard } from '@/components/common/section-card';
-import { StatusBadge } from '@/components/common/status-badge';
-import { Button } from '@/components/common/button';
-import { LoadingSkeleton } from '@/components/common/loading-skeleton';
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { Eye, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { getAllCases, deleteCase, type CaseSheetRecord } from "@/services/case.service";
+import { SearchFilterBar } from "@/components/common/search-filter-bar";
+import { SectionCard } from "@/components/common/section-card";
+import { StatusBadge } from "@/components/common/status-badge";
+import { Button } from "@/components/common/button";
+import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
 export function CaseManagementTable() {
-  const [search, setSearch] = useState('');
-  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
+  const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"table" | "grid">("table");
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['cases'],
+    queryKey: ["cases"],
     queryFn: getAllCases,
   });
 
-  const cases = data?.data ?? [];
+  const casesData = data?.data as CaseSheetRecord[] | undefined;
 
   const filteredCases = useMemo(() => {
-    return cases.filter((item: any) =>
-      [item.id, item.studentName, item.department].join(' ').toLowerCase().includes(search.toLowerCase())
+    const list = casesData ?? [];
+    return list.filter((item: CaseSheetRecord) =>
+      [item.id, item.studentName, item.department]
+        .join(" ")
+        .toLowerCase()
+        .includes(search.toLowerCase()),
     );
-  }, [cases, search]);
+  }, [casesData, search]);
 
   const handleDelete = async (id: string) => {
     if (!confirm(`Are you sure you want to delete Case Record ${id}?`)) return;
@@ -36,46 +40,65 @@ export function CaseManagementTable() {
       await deleteCase(id);
       toast.success(`Case ${id} deleted.`);
       await refetch();
-      queryClient.invalidateQueries({ queryKey: ['cases'] });
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete case.');
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message || "Failed to delete case.");
     }
   };
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
   if (isError)
     return (
-      <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">
+      <div className="rounded-[20px] border border-border bg-white p-5 text-sm text-danger shadow-card">
         Unable to load case records.
       </div>
     );
 
   return (
     <SectionCard
-      title="Case Sheet Management"
-      subtitle="Confidential Case Sheet records following the official SMVITM Mental Health First Aid format."
+      title="Case Directory"
+      subtitle="Search, view, update, or archive counsellor case sheet records."
     >
-      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="w-full lg:max-w-md">
-          <SearchFilterBar value={search} onChange={setSearch} placeholder="Search by Case ID, client name, or department" />
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="w-full sm:max-w-md">
+          <SearchFilterBar
+            value={search}
+            onChange={setSearch}
+            placeholder="Search by Case ID, student name or department"
+          />
         </div>
         <div className="flex items-center gap-2">
+          <div className="flex rounded-2xl bg-secondary p-1 text-xs">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`rounded-xl px-3 py-1.5 font-medium transition ${
+                viewMode === "table" ? "bg-white text-primary shadow-sm" : "text-text-secondary"
+              }`}
+            >
+              Table View
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-xl px-3 py-1.5 font-medium transition ${
+                viewMode === "grid" ? "bg-white text-primary shadow-sm" : "text-text-secondary"
+              }`}
+            >
+              Grid View
+            </button>
+          </div>
           <Link
             href="/new-case"
-            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D214F] px-4 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-[#581a3f]"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2 text-xs font-semibold text-white shadow-soft transition hover:bg-primary-hover"
           >
-            <Plus className="h-4 w-4" /> Create New Case Sheet
+            <Plus className="h-4 w-4" /> Create Case
           </Link>
-          <Button variant="ghost" onClick={() => setViewMode(viewMode === 'table' ? 'cards' : 'table')}>
-            {viewMode === 'table' ? 'Card View' : 'Table View'}
-          </Button>
         </div>
       </div>
 
-      {viewMode === 'table' ? (
-        <div className="overflow-hidden rounded-[20px] border border-[#E8DDD5] shadow-card">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-[#F8F3EE] text-[#6D214F]">
+      {viewMode === "table" ? (
+        <div className="overflow-x-auto rounded-[20px] border border-border">
+          <table className="w-full text-left text-sm text-text">
+            <thead className="bg-secondary text-xs uppercase tracking-wider text-text-secondary">
               <tr>
                 <th className="p-3">Case ID</th>
                 <th className="p-3">Client / Student Name</th>
@@ -86,9 +109,12 @@ export function CaseManagementTable() {
               </tr>
             </thead>
             <tbody>
-              {filteredCases.map((item: any) => (
-                <tr key={item.id} className="border-t border-[#E8DDD5] bg-white transition hover:bg-[#F8F3EE]">
-                  <td className="p-3 font-mono text-xs text-[#6D214F] font-semibold">{item.id}</td>
+              {filteredCases.map((item: CaseSheetRecord) => (
+                <tr
+                  key={item.id}
+                  className="border-t border-border bg-white transition hover:bg-secondary"
+                >
+                  <td className="p-3 font-mono text-xs text-primary font-semibold">{item.id}</td>
                   <td className="p-3 font-medium">{item.studentName}</td>
                   <td className="p-3 text-slate-600">{item.department}</td>
                   <td className="p-3 text-slate-600">{item.createdDate}</td>
@@ -99,7 +125,7 @@ export function CaseManagementTable() {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/case/${item.id}`}
-                        className="inline-flex items-center gap-1 rounded-xl bg-[#6D214F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#581a3f]"
+                        className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
                       >
                         <Eye className="h-3.5 w-3.5" /> Open Sheet
                       </Link>
@@ -116,7 +142,7 @@ export function CaseManagementTable() {
               {filteredCases.length === 0 && (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-sm text-slate-500">
-                    No case records found. Click "+ Create New Case Sheet" to create one.
+                    No case records found.
                   </td>
                 </tr>
               )}
@@ -125,14 +151,14 @@ export function CaseManagementTable() {
         </div>
       ) : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {filteredCases.map((item: any) => (
+          {filteredCases.map((item: CaseSheetRecord) => (
             <div
               key={item.id}
-              className="rounded-[20px] border border-[#E8DDD5] bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1"
+              className="rounded-[20px] border border-border bg-white p-4 shadow-card transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-mono text-xs font-bold text-[#6D214F]">{item.id}</p>
+                  <p className="font-mono text-xs font-bold text-primary">{item.id}</p>
                   <p className="font-semibold text-slate-900">{item.studentName}</p>
                 </div>
                 <StatusBadge status={item.status} />
@@ -145,7 +171,7 @@ export function CaseManagementTable() {
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                 <Link
                   href={`/case/${item.id}`}
-                  className="inline-flex items-center gap-1 rounded-xl bg-[#6D214F] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#581a3f]"
+                  className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
                 >
                   <Eye className="h-3.5 w-3.5" /> Open Sheet
                 </Link>

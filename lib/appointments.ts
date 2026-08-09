@@ -1,11 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppointmentStatus =
-  | "pending"
-  | "approved"
-  | "rejected"
-  | "completed"
-  | "cancelled";
+export type AppointmentStatus = "pending" | "approved" | "rejected" | "completed" | "cancelled";
 
 export type Appointment = {
   id: string;

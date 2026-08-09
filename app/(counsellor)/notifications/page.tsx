@@ -1,4 +1,4 @@
-import { NotificationsPanel } from '@/components/notifications/notifications-panel';
+import { NotificationsPanel } from "@/components/notifications/notifications-panel";
 
 export default function NotificationsPage() {
   return <NotificationsPanel />;

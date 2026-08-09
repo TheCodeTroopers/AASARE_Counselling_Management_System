@@ -1,5 +1,5 @@
-import { DashboardOverview } from '@/components/dashboard/dashboard-overview';
-import { AppointmentTimeline } from '@/components/dashboard/appointment-timeline';
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
+import { AppointmentTimeline } from "@/components/dashboard/appointment-timeline";
 
 export default function DashboardPage() {
   return (

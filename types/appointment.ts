@@ -1,15 +1,21 @@
+export type AppointmentStatus = "pending" | "approved" | "rejected" | "completed" | "cancelled";
+
 export interface AppointmentItem {
   id: string;
   studentName: string;
+  studentEmail?: string;
+  studentUsn?: string;
   department: string;
-  semester: string;
+  semester?: string;
   appointmentDate: string;
   time: string;
   reasonPreview: string;
-  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  status: AppointmentStatus | (string & {});
+  rejectionReason?: string | null;
+  counsellorId?: string;
 }
 
 export interface AppointmentFilters {
   query: string;
-  status: AppointmentItem['status'] | 'all';
+  status: AppointmentItem["status"] | "all";
 }
