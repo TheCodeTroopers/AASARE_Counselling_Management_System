@@ -1,31 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  HardDrive,
-  Upload,
-  Folder,
-  FolderPlus,
-  Edit2,
-  CheckCircle2,
-  XCircle,
-  FileText,
-  ExternalLink,
-  Save,
-  FolderIcon,
-  HardDriveIcon,
-  ExternalLinkIcon,
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { HardDrive, FolderIcon, HardDriveIcon, ExternalLinkIcon } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   connectGoogleDrive,
   disconnectGoogleDrive,
-  getDriveFiles,
   getDriveStatus,
   getFolderConfig,
   updateFolderConfig,
-  uploadFileToDrive,
   type DriveFolderConfig,
 } from "@/services/googleDrive.service";
 import { Button } from "@/components/common/button";
@@ -33,13 +18,16 @@ import { SectionCard } from "@/components/common/section-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
 export function GoogleDrivePanel() {
-  const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
   const [editingFolder, setEditingFolder] = useState(false);
   const [folderNameInput, setFolderNameInput] = useState("");
   const [folderIdInput, setFolderIdInput] = useState("");
 
-  const { data: statusData, refetch: refetchStatus } = useQuery({
+  const {
+    data: statusData,
+    isLoading,
+    isError,
+    refetch: refetchStatus,
+  } = useQuery({
     queryKey: ["drive-status"],
     queryFn: getDriveStatus,
   });
@@ -49,24 +37,16 @@ export function GoogleDrivePanel() {
     queryFn: getFolderConfig,
   });
 
-  const {
-    data: filesData,
-    isLoading,
-    isError,
-    refetch: refetchFiles,
-  } = useQuery({
-    queryKey: ["drive-files"],
-    queryFn: getDriveFiles,
-  });
-
   const isConnected = statusData?.connected ?? true;
   const currentFolder = {
-    folderName: folderData?.folderName || "AASARE Counselling Case Sheets",
-    folderId: folderData?.folderId || "",
+    folderName:
+      statusData?.folderName || folderData?.folderName || "AASARE Counselling Case Sheets",
+    folderId: statusData?.folderId || folderData?.folderId || "",
     folderUrl:
-      folderData?.folderId && folderData.folderId.trim()
+      statusData?.folderUrl ||
+      (folderData?.folderId && folderData.folderId.trim()
         ? `https://drive.google.com/drive/folders/${folderData.folderId.trim()}`
-        : folderData?.folderUrl || "https://drive.google.com/drive/my-drive",
+        : folderData?.folderUrl || "https://drive.google.com/drive/my-drive"),
   };
 
   useEffect(() => {
@@ -81,7 +61,6 @@ export function GoogleDrivePanel() {
       await connectGoogleDrive();
       toast.success("Google Drive connected successfully!");
       await refetchStatus();
-      await refetchFiles();
     }
 
     // Check URL query parameters if redirected directly
@@ -101,7 +80,7 @@ export function GoogleDrivePanel() {
 
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, [refetchStatus, refetchFiles]);
+  }, [refetchStatus]);
 
   const handleConnect = async () => {
     try {
@@ -114,8 +93,21 @@ export function GoogleDrivePanel() {
           ? `${window.location.origin}/api/drive/callback`
           : "http://localhost:3000/api/drive/callback");
       const redirectUri = encodeURIComponent(rawRedirectUri);
-      const scope = encodeURIComponent("https://www.googleapis.com/auth/drive.file");
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=select_account`;
+      const scope = encodeURIComponent(
+        "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata",
+      );
+
+      // The callback runs server-side where the supabase session (stored in
+      // localStorage) is unavailable, so carry the user's access token + email
+      // through OAuth `state` to identify the user on return.
+      const { data: sessionData } = await supabase.auth.getSession();
+      const statePayload = JSON.stringify({
+        token: sessionData?.session?.access_token || "",
+        email: sessionData?.session?.user?.email || "",
+      });
+      const state = btoa(encodeURIComponent(statePayload));
+
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=offline&prompt=select_account&state=${encodeURIComponent(state)}`;
 
       const popup = window.open(
         authUrl,
@@ -161,25 +153,6 @@ export function GoogleDrivePanel() {
     toast.success(`Google Drive target folder set to "${newName}"`);
     setEditingFolder(false);
     await refetchFolder();
-    await refetchFiles();
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-    try {
-      await uploadFileToDrive(file);
-      toast.success(`Uploaded "${file.name}" into folder "${currentFolder.folderName}"!`);
-      await refetchFiles();
-      await refetchStatus();
-      queryClient.invalidateQueries({ queryKey: ["drive-files"] });
-    } catch (err: unknown) {
-      toast.error((err as Error).message || "Failed to upload file");
-    } finally {
-      setUploading(false);
-    }
   };
 
   if (isLoading) return <LoadingSkeleton rows={4} />;
@@ -226,26 +199,16 @@ export function GoogleDrivePanel() {
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex items-center justify-between">
-            <div>
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Total Backup Files
-              </span>
-              <p className="mt-1 text-2xl font-bold text-slate-900">
-                {filesData?.data.length || 0}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1.5">
-              {isConnected ? (
-                <Button variant="danger" onClick={handleDisconnect}>
-                  Disconnect
-                </Button>
-              ) : (
-                <Button variant="primary" onClick={handleConnect}>
-                  Connect Drive
-                </Button>
-              )}
-            </div>
+          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex items-center justify-end">
+            {isConnected ? (
+              <Button variant="danger" onClick={handleDisconnect}>
+                Disconnect
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={handleConnect}>
+                Connect Drive
+              </Button>
+            )}
           </div>
         </div>
 
@@ -325,76 +288,6 @@ export function GoogleDrivePanel() {
                   Save Target Folder
                 </button>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Upload File to Drive Zone */}
-        {isConnected && (
-          <div className="mt-6 rounded-[20px] border border-dashed border-primary/40 bg-secondary p-6 text-center shadow-sm">
-            <Upload className="mx-auto h-8 w-8 text-primary" />
-            <p className="mt-2 text-sm font-semibold text-slate-800">
-              Upload Case Sheet PDF or Document to folder:{" "}
-              <span className="text-primary">{currentFolder.folderName}</span>
-            </p>
-            <p className="mt-1 text-xs text-slate-500">
-              Supported formats: PDF, DOCX, Images (Max 25MB)
-            </p>
-            <label className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow hover:bg-primary-hover transition cursor-pointer">
-              <span>{uploading ? "Uploading to Drive Folder..." : "Choose File to Upload"}</span>
-              <input
-                type="file"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
-          </div>
-        )}
-
-        {/* List of Synced Files */}
-        <div className="mt-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-primary">
-              Uploaded Case Documents in "{currentFolder.folderName}"
-            </h3>
-            <span className="text-xs text-slate-500">{filesData?.data.length || 0} Files</span>
-          </div>
-
-          {filesData?.data.length === 0 ? (
-            <p className="text-xs text-slate-500">No documents uploaded to this folder yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {filesData?.data.map((file) => (
-                <div
-                  key={file.id || file.name}
-                  className="flex items-center justify-between rounded-2xl border border-border bg-white p-3.5 shadow-sm transition hover:bg-secondary"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="grid h-9 w-9 place-items-center rounded-xl bg-rose-50 text-rose-700">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm text-slate-900">{file.name}</p>
-                      <p className="text-xs text-slate-500">
-                        {file.size} · Synced {file.syncedAt} ·{" "}
-                        <span className="font-medium text-primary">
-                          Folder: {file.folderName || currentFolder.folderName}
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <a
-                    href={file.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-xl bg-secondary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-slate-200 transition cursor-pointer"
-                  >
-                    <ExternalLinkIcon className="h-3.5 w-3.5" /> View Document
-                  </a>
-                </div>
-              ))}
             </div>
           )}
         </div>

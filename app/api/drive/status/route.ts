@@ -1,9 +1,41 @@
-import { NextResponse } from "next/server";
-import { supabase } from "@/integrations/supabase/client";
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { data: authData } = await supabase.auth.getUser();
+    // The session lives in the browser's localStorage, so the server must use
+    // the user's access token (sent as `Authorization: Bearer ...`) to resolve
+    // the authenticated user AND satisfy RLS on drive_connections.
+    const authHeader = req.headers.get("authorization");
+    const token =
+      authHeader?.startsWith("Bearer ") && authHeader.length > 7
+        ? authHeader.slice(7)
+        : null;
+
+    const SUPABASE_URL =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "https://vgsyirselvakpjcfwfgi.supabase.co";
+    const SUPABASE_KEY =
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY ||
+      "sb_publishable_OhN4Zj3bW8Z6gv-SeHH2xw_3lF7RPyW";
+
+    const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
+      global: {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+      auth: {
+        storage: undefined,
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    });
+
+    const { data: authData } = token
+      ? await supabase.auth.getUser(token)
+      : { data: { user: null } };
     const userId = authData?.user?.id;
     const userEmail = authData?.user?.email;
 

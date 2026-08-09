@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { createCase, saveDraft } from "@/services/case.service";
+import { useNotifications } from "@/hooks/use-notifications";
 import { SectionCard } from "@/components/common/section-card";
 import { Button } from "@/components/common/button";
 
@@ -146,6 +147,7 @@ const steps = [
 
 export function CaseWizardForm() {
   const router = useRouter();
+  const { addNotification } = useNotifications();
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<CaseSheetData>(initialFormData);
   const [submitting, setSubmitting] = useState(false);
@@ -159,6 +161,12 @@ export function CaseWizardForm() {
     try {
       await saveDraft(formData);
       toast.success("Draft saved successfully!");
+      addNotification({
+        title: "Draft Saved",
+        message: `Draft intake sheet for ${formData.clientName || "client"} saved.`,
+        type: "case",
+        link: "/case-management",
+      });
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to save draft");
     } finally {
@@ -166,8 +174,7 @@ export function CaseWizardForm() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submitCase = async () => {
     if (!formData.clientName.trim()) {
       toast.error("Please enter the Client Name in Step 1.");
       setStep(0);
@@ -178,12 +185,23 @@ export function CaseWizardForm() {
     try {
       await createCase(formData);
       toast.success("Case Sheet created successfully!");
+      addNotification({
+        title: "Case Sheet Created",
+        message: `Case sheet for ${formData.clientName} created successfully.`,
+        type: "case",
+        link: "/case-management",
+      });
       router.push("/case-management");
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to create case sheet");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitCase();
   };
 
   return (
@@ -222,7 +240,14 @@ export function CaseWizardForm() {
       </div>
 
       {/* Main Wizard Form Card */}
-      <form onSubmit={handleSubmit}>
+      <form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && e.target instanceof HTMLButtonElement) return;
+          if (e.key === "Enter" && e.target instanceof HTMLTextAreaElement) return;
+          if (e.key === "Enter") e.preventDefault();
+        }}
+      >
         <SectionCard
           title={steps[step]}
           subtitle="Fill in the official Case Sheet fields accurately."
@@ -278,22 +303,31 @@ export function CaseWizardForm() {
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Role in Institution
                 </label>
-                <div className="flex flex-wrap gap-4 pt-1">
-                  {(["Student", "Parent", "Faculty", "Staff"] as const).map((r) => (
-                    <label
-                      key={r}
-                      className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="roleInInstitution"
-                        checked={formData.roleInInstitution === r}
-                        onChange={() => updateField("roleInInstitution", r)}
-                        className="accent-primary"
-                      />
-                      {r}
-                    </label>
-                  ))}
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  {(["Student", "Parent", "Faculty", "Staff"] as const).map((r) => {
+                    const isSelected = formData.roleInInstitution === r;
+                    return (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => updateField("roleInInstitution", r)}
+                        className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary shadow-xs ring-2 ring-primary/20"
+                            : "border-border bg-secondary text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center ${
+                            isSelected ? "border-primary bg-primary" : "border-slate-400 bg-white"
+                          }`}
+                        >
+                          {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </span>
+                        {r}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -365,22 +399,31 @@ export function CaseWizardForm() {
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-600">
                   Referred By
                 </label>
-                <div className="flex flex-wrap gap-4 pt-1">
-                  {(["Self", "Faculty", "Peer", "Parent", "ICC", "Other"] as const).map((ref) => (
-                    <label
-                      key={ref}
-                      className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="referredBy"
-                        checked={formData.referredBy === ref}
-                        onChange={() => updateField("referredBy", ref)}
-                        className="accent-primary"
-                      />
-                      {ref}
-                    </label>
-                  ))}
+                <div className="flex flex-wrap gap-2.5 pt-1">
+                  {(["Self", "Faculty", "Peer", "Parent", "ICC", "Other"] as const).map((ref) => {
+                    const isSelected = formData.referredBy === ref;
+                    return (
+                      <button
+                        key={ref}
+                        type="button"
+                        onClick={() => updateField("referredBy", ref)}
+                        className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary shadow-xs ring-2 ring-primary/20"
+                            : "border-border bg-secondary text-slate-700 hover:bg-slate-200"
+                        }`}
+                      >
+                        <span
+                          className={`h-3.5 w-3.5 rounded-full border flex items-center justify-center ${
+                            isSelected ? "border-primary bg-primary" : "border-slate-400 bg-white"
+                          }`}
+                        >
+                          {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                        </span>
+                        {ref}
+                      </button>
+                    );
+                  })}
                 </div>
                 {formData.referredBy === "Other" && (
                   <input
@@ -495,14 +538,29 @@ export function CaseWizardForm() {
 
               <div className="space-y-3">
                 {/* Active Listening */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.activeListening
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.activeListening}
                       onChange={(e) => updateField("activeListening", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.activeListening
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.activeListening && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
                     Active Listening
                   </label>
                   {formData.activeListening && (
@@ -511,20 +569,35 @@ export function CaseWizardForm() {
                       value={formData.activeListeningNotes}
                       onChange={(e) => updateField("activeListeningNotes", e.target.value)}
                       placeholder="Describe active listening provided..."
-                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                      className="mt-3 w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-primary/40"
                     />
                   )}
                 </div>
 
                 {/* Emotional Support */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.emotionalSupport
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.emotionalSupport}
                       onChange={(e) => updateField("emotionalSupport", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.emotionalSupport
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.emotionalSupport && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
                     Emotional Support
                   </label>
                   {formData.emotionalSupport && (
@@ -533,75 +606,112 @@ export function CaseWizardForm() {
                       value={formData.emotionalSupportNotes}
                       onChange={(e) => updateField("emotionalSupportNotes", e.target.value)}
                       placeholder="Describe emotional support provided..."
-                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                      className="mt-3 w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-primary/40"
                     />
                   )}
                 </div>
 
                 {/* Stress Management Tips */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.stressManagementTips
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.stressManagementTips}
                       onChange={(e) => updateField("stressManagementTips", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.stressManagementTips
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.stressManagementTips && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
                     Stress Management Tips
                   </label>
                   {formData.stressManagementTips && (
-                    <div className="mt-3 space-y-2 pl-6">
-                      <div className="flex flex-wrap gap-4 text-sm text-slate-700">
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.stressTipsBreathing}
-                            onChange={(e) => updateField("stressTipsBreathing", e.target.checked)}
-                            className="accent-primary"
-                          />
-                          Breathing
-                        </label>
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.stressTipsGrounding}
-                            onChange={(e) => updateField("stressTipsGrounding", e.target.checked)}
-                            className="accent-primary"
-                          />
-                          Grounding
-                        </label>
-                        <label className="flex items-center gap-1.5 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.stressTipsPositiveTalk}
-                            onChange={(e) =>
-                              updateField("stressTipsPositiveTalk", e.target.checked)
-                            }
-                            className="accent-primary"
-                          />
-                          Positive Talk
-                        </label>
+                    <div className="mt-3 space-y-2 pl-8">
+                      <div className="flex flex-wrap gap-2 text-sm text-slate-700">
+                        {[
+                          { key: "stressTipsBreathing", label: "Breathing" },
+                          { key: "stressTipsGrounding", label: "Grounding" },
+                          { key: "stressTipsPositiveTalk", label: "Positive Talk" },
+                        ].map((tip) => {
+                          const isChecked = Boolean(formData[tip.key as keyof CaseSheetData]);
+                          return (
+                            <button
+                              key={tip.key}
+                              type="button"
+                              onClick={() =>
+                                updateField(tip.key as keyof CaseSheetData, !isChecked)
+                              }
+                              className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                                isChecked
+                                  ? "border-primary bg-primary text-white shadow-xs"
+                                  : "border-border bg-white text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <span
+                                className={`h-3 w-3 rounded-xs border flex items-center justify-center ${
+                                  isChecked
+                                    ? "border-white bg-white/20"
+                                    : "border-slate-400 bg-white"
+                                }`}
+                              >
+                                {isChecked && <CheckCircle2 className="h-2.5 w-2.5 text-white" />}
+                              </span>
+                              {tip.label}
+                            </button>
+                          );
+                        })}
                       </div>
                       <input
                         type="text"
                         value={formData.stressTipsOther}
                         onChange={(e) => updateField("stressTipsOther", e.target.value)}
                         placeholder="Mention if other stress tips provided..."
-                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none"
                       />
                     </div>
                   )}
                 </div>
 
                 {/* Encouraged Peer/Family Support */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.encouragedPeerFamilySupport
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.encouragedPeerFamilySupport}
-                      onChange={(e) => updateField("encouragedPeerFamilySupport", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      onChange={(e) =>
+                        updateField("encouragedPeerFamilySupport", e.target.checked)
+                      }
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.encouragedPeerFamilySupport
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.encouragedPeerFamilySupport && (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      )}
+                    </span>
                     Encouraged Peer / Family Support
                   </label>
                   {formData.encouragedPeerFamilySupport && (
@@ -610,33 +720,63 @@ export function CaseWizardForm() {
                       value={formData.peerFamilyNotes}
                       onChange={(e) => updateField("peerFamilyNotes", e.target.value)}
                       placeholder="Describe guidance given..."
-                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                      className="mt-3 w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none"
                     />
                   )}
                 </div>
 
                 {/* Shared College Helpline Info */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.sharedCollegeHelpline
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.sharedCollegeHelpline}
                       onChange={(e) => updateField("sharedCollegeHelpline", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.sharedCollegeHelpline
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.sharedCollegeHelpline && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
                     Shared College Helpline / Mental Health Info
                   </label>
                 </div>
 
                 {/* Academic Adjustment/Faculty Coordination */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.academicAdjustment
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.academicAdjustment}
                       onChange={(e) => updateField("academicAdjustment", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.academicAdjustment
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.academicAdjustment && <CheckCircle2 className="h-3.5 w-3.5" />}
+                    </span>
                     Academic Adjustment / Faculty Coordination
                   </label>
                   {formData.academicAdjustment && (
@@ -645,39 +785,71 @@ export function CaseWizardForm() {
                       value={formData.academicAdjustmentNotes}
                       onChange={(e) => updateField("academicAdjustmentNotes", e.target.value)}
                       placeholder="Describe faculty coordination arranged..."
-                      className="mt-2 w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                      className="mt-3 w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none"
                     />
                   )}
                 </div>
 
                 {/* Referral to Professional Help */}
-                <div className="rounded-2xl border border-border bg-secondary p-3.5">
-                  <label className="flex items-center gap-2 font-semibold text-sm text-primary cursor-pointer">
+                <div
+                  className={`rounded-2xl border p-4 transition-all duration-200 ${
+                    formData.referralProfessionalHelp
+                      ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                      : "border-border bg-secondary hover:bg-slate-100/70"
+                  }`}
+                >
+                  <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                     <input
                       type="checkbox"
                       checked={formData.referralProfessionalHelp}
                       onChange={(e) => updateField("referralProfessionalHelp", e.target.checked)}
-                      className="h-4 w-4 rounded accent-primary"
+                      className="sr-only"
                     />
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                        formData.referralProfessionalHelp
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-slate-400 bg-white"
+                      }`}
+                    >
+                      {formData.referralProfessionalHelp && (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      )}
+                    </span>
                     Referral to Professional Help
                   </label>
                   {formData.referralProfessionalHelp && (
-                    <div className="mt-3 space-y-2 pl-6">
-                      <label className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.referralICCCoordinator}
-                          onChange={(e) => updateField("referralICCCoordinator", e.target.checked)}
-                          className="accent-primary"
-                        />
+                    <div className="mt-3 space-y-2 pl-8">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateField("referralICCCoordinator", !formData.referralICCCoordinator)
+                        }
+                        className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold transition cursor-pointer ${
+                          formData.referralICCCoordinator
+                            ? "border-primary bg-primary text-white shadow-xs"
+                            : "border-border bg-white text-slate-700 hover:bg-slate-100"
+                        }`}
+                      >
+                        <span
+                          className={`h-3 w-3 rounded-xs border flex items-center justify-center ${
+                            formData.referralICCCoordinator
+                              ? "border-white bg-white/20"
+                              : "border-slate-400 bg-white"
+                          }`}
+                        >
+                          {formData.referralICCCoordinator && (
+                            <CheckCircle2 className="h-2.5 w-2.5 text-white" />
+                          )}
+                        </span>
                         Informed ICC Coordinator
-                      </label>
+                      </button>
                       <input
                         type="text"
                         value={formData.referralToDetails}
                         onChange={(e) => updateField("referralToDetails", e.target.value)}
                         placeholder="Referred to (Doctor / External Psychiatrist / Specialist name)..."
-                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm outline-none"
+                        className="w-full rounded-xl border border-border bg-white p-2.5 text-sm text-slate-900 outline-none"
                       />
                     </div>
                   )}
@@ -711,14 +883,29 @@ export function CaseWizardForm() {
           {/* STEP 6: Follow-Up */}
           {step === 5 && (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-border bg-secondary p-4">
-                <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer">
+              <div
+                className={`rounded-2xl border p-4 transition-all duration-200 ${
+                  formData.isFollowupNeeded
+                    ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                    : "border-border bg-secondary hover:bg-slate-100/70"
+                }`}
+              >
+                <label className="flex items-center gap-3 font-semibold text-sm text-primary cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={formData.isFollowupNeeded}
                     onChange={(e) => updateField("isFollowupNeeded", e.target.checked)}
-                    className="h-4 w-4 rounded accent-primary"
+                    className="sr-only"
                   />
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                      formData.isFollowupNeeded
+                        ? "border-emerald-600 bg-emerald-600 text-white"
+                        : "border-slate-400 bg-white"
+                    }`}
+                  >
+                    {formData.isFollowupNeeded && <CheckCircle2 className="h-3.5 w-3.5" />}
+                  </span>
                   Is follow-up needed? (Yes / No)
                 </label>
               </div>
@@ -767,70 +954,67 @@ export function CaseWizardForm() {
 
           {/* STEP 7: Consent & Confidentiality */}
           {step === 6 && (
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-border bg-secondary p-4 space-y-3">
-                <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.consentInfoPolicy}
-                    onChange={(e) => updateField("consentInfoPolicy", e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded accent-primary"
-                  />
-                  <span>
-                    The individual was informed about the nature of support and the confidentiality
-                    policy.
-                  </span>
-                </label>
-                <label className="flex items-start gap-2 text-sm text-slate-800 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.consentVerbal}
-                    onChange={(e) => updateField("consentVerbal", e.target.checked)}
-                    className="mt-1 h-4 w-4 rounded accent-primary"
-                  />
-                  <span>
-                    Verbal consent was taken to proceed with first aid support and basic
-                    documentation.
-                  </span>
-                </label>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    ICC Faculty / HR Co. Name & Signature
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.iccSignatureName}
-                    onChange={(e) => updateField("iccSignatureName", e.target.value)}
-                    placeholder="Dr. Deepika B V / SWO Counsellor Name"
-                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.caseDate}
-                    onChange={(e) => updateField("caseDate", e.target.value)}
-                    className="w-full rounded-2xl border border-border bg-secondary p-3 text-sm outline-none"
-                  />
-                </div>
-              </div>
+            <div className="space-y-3">
+              {[
+                {
+                  field: "consentInfoPolicy" as const,
+                  text: "The individual was informed about the nature of support and the confidentiality policy.",
+                },
+                {
+                  field: "consentVerbal" as const,
+                  text: "Verbal consent was taken to proceed with first aid support and basic documentation.",
+                },
+              ].map((item) => {
+                const isChecked = Boolean(formData[item.field]);
+                return (
+                  <div
+                    key={item.field}
+                    onClick={() => updateField(item.field, !isChecked)}
+                    className={`rounded-2xl border p-4 transition-all duration-200 cursor-pointer ${
+                      isChecked
+                        ? "border-emerald-600/50 bg-emerald-50/40 shadow-xs ring-1 ring-emerald-500/20"
+                        : "border-border bg-secondary hover:bg-slate-100/70"
+                    }`}
+                  >
+                    <label className="flex items-start gap-3 text-sm font-medium text-slate-800 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => updateField(item.field, !isChecked)}
+                        className="sr-only"
+                      />
+                      <span
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${
+                          isChecked
+                            ? "border-emerald-600 bg-emerald-600 text-white"
+                            : "border-slate-400 bg-white"
+                        }`}
+                      >
+                        {isChecked && <CheckCircle2 className="h-3.5 w-3.5" />}
+                      </span>
+                      <span className="leading-snug">{item.text}</span>
+                    </label>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* Navigation & Action Footer */}
           <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-secondary pt-5">
-            <div className="flex gap-2">
-              {step > 0 && (
-                <Button variant="ghost" type="button" onClick={() => setStep((s) => s - 1)}>
-                  <ArrowLeft className="h-4 w-4" /> Previous
-                </Button>
-              )}
+            <div>
+              <button
+                type="button"
+                onClick={() => setStep((s) => s - 1)}
+                disabled={step === 0}
+                className={`inline-flex items-center gap-1.5 rounded-2xl border border-border px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+                  step === 0
+                    ? "invisible"
+                    : "bg-secondary text-slate-700 hover:bg-slate-200"
+                }`}
+              >
+                <ArrowLeft className="h-4 w-4" /> Previous
+              </button>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -853,7 +1037,8 @@ export function CaseWizardForm() {
                 </button>
               ) : (
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={submitCase}
                   disabled={submitting}
                   className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-800 cursor-pointer"
                 >

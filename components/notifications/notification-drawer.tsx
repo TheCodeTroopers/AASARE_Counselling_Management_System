@@ -5,16 +5,13 @@ import Link from "next/link";
 import {
   BellRing,
   CalendarClock,
-  Check,
   CheckCheck,
   FileText,
   ShieldCheck,
-  Trash2,
   X,
 } from "lucide-react";
 import {
   useNotifications,
-  type AppNotification,
   type NotificationType,
 } from "@/hooks/use-notifications";
 import { cn } from "@/utils/cn";
@@ -50,12 +47,14 @@ const COLOR_MAP: Record<NotificationType, { bg: string; text: string; badgeBg: s
 };
 
 export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
-  const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotification, clearAll } =
+  const { allNotifications, globalUnreadCount, markAsRead, markAllAsRead, clearNotification, clearAll } =
     useNotifications();
   const [filter, setFilter] = useState<"all" | "unread">("all");
 
   const displayedList =
-    filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications;
+    filter === "unread" ? allNotifications.filter((n) => !n.isRead) : allNotifications;
+
+  const totalCount = allNotifications.length;
 
   return (
     <div className="w-80 md:w-96 rounded-2xl border border-border bg-white p-4 shadow-xl">
@@ -64,20 +63,20 @@ export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
         <div className="flex items-center gap-2">
           <div className="relative">
             <BellRing className="h-5 w-5 text-primary" />
-            {unreadCount > 0 && (
+            {globalUnreadCount > 0 && (
               <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
             )}
           </div>
           <h3 className="font-semibold text-slate-900">Notifications</h3>
-          {unreadCount > 0 && (
+          {globalUnreadCount > 0 && (
             <span className="rounded-full bg-rose-500/10 px-2 py-0.5 text-[10px] font-bold text-rose-600 border border-rose-500/20">
-              {unreadCount} new
+              {globalUnreadCount} new
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-1">
-          {unreadCount > 0 && (
+          {globalUnreadCount > 0 && (
             <button
               onClick={markAllAsRead}
               title="Mark all as read"
@@ -111,7 +110,7 @@ export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
                 : "text-slate-600 hover:text-slate-900",
             )}
           >
-            All ({notifications.length})
+            All ({totalCount})
           </button>
           <button
             onClick={() => setFilter("unread")}
@@ -122,11 +121,11 @@ export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
                 : "text-slate-600 hover:text-slate-900",
             )}
           >
-            Unread ({unreadCount})
+            Unread ({globalUnreadCount})
           </button>
         </div>
 
-        {notifications.length > 0 && (
+        {totalCount > 0 && (
           <button
             onClick={clearAll}
             title="Clear all notifications"
@@ -151,53 +150,42 @@ export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
             return (
               <div
                 key={item.id}
-                onClick={() => {
-                  if (!item.isRead) markAsRead(item.id);
-                }}
                 className={cn(
-                  "group relative flex items-start gap-3 rounded-xl border p-3 transition text-left cursor-pointer",
+                  "group flex items-start justify-between gap-3 rounded-xl border p-3 transition",
                   item.isRead
-                    ? "border-slate-100 bg-white hover:bg-slate-50/80"
-                    : "border-primary/20 bg-secondary/60 hover:bg-secondary",
+                    ? "border-slate-100 bg-white hover:border-slate-200"
+                    : "border-primary/20 bg-secondary/30 hover:bg-secondary/50",
                 )}
               >
-                {/* Icon Container */}
-                <div className={cn("mt-0.5 shrink-0 rounded-lg p-2", style.bg, style.text)}>
-                  <IconComponent className="h-4 w-4" />
-                </div>
-
-                {/* Content */}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <span
-                      className={cn(
-                        "text-[10px] font-bold uppercase tracking-wider rounded-md border px-1.5 py-0.5",
-                        style.badgeBg,
-                      )}
-                    >
-                      {item.type}
-                    </span>
-                    <span className="text-[10px] text-slate-400">{item.timestamp}</span>
+                <div className="flex items-start gap-2.5">
+                  <div className={cn("mt-0.5 shrink-0 rounded-lg p-2", style.bg)}>
+                    <IconComponent className={cn("h-4 w-4", style.text)} />
                   </div>
-                  <p className="mt-1 text-xs font-semibold text-slate-900 leading-tight">
-                    {item.title}
-                  </p>
-                  <p className="mt-0.5 text-xs text-slate-600 leading-relaxed line-clamp-2">
-                    {item.message}
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-slate-900">{item.title}</span>
+                      {!item.isRead && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-rose-500 shrink-0" />
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-slate-600 leading-snug">{item.message}</p>
+                    <span className="mt-1 block text-[10px] text-slate-400">{item.timestamp}</span>
+                  </div>
                 </div>
 
-                {/* Action / Unread Indicator */}
-                <div className="flex flex-col items-end gap-1.5">
+                <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100">
                   {!item.isRead && (
-                    <span className="h-2 w-2 rounded-full bg-primary" title="Unread" />
+                    <button
+                      onClick={() => markAsRead(item.id)}
+                      className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-emerald-600 transition cursor-pointer"
+                      title="Mark read"
+                    >
+                      <CheckCheck className="h-3.5 w-3.5" />
+                    </button>
                   )}
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearNotification(item.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 transition cursor-pointer p-0.5"
+                    onClick={() => clearNotification(item.id)}
+                    className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                     title="Dismiss"
                   >
                     <X className="h-3.5 w-3.5" />
@@ -209,14 +197,14 @@ export function NotificationDrawer({ onClose }: { onClose?: () => void }) {
         )}
       </div>
 
-      {/* Footer Link */}
+      {/* Footer Link to Notifications Page */}
       <div className="mt-3 border-t border-border pt-2 text-center">
         <Link
           href="/notifications"
           onClick={onClose}
-          className="text-xs font-medium text-primary hover:underline"
+          className="text-xs font-semibold text-primary transition hover:underline"
         >
-          View all notifications →
+          View all activity logs →
         </Link>
       </div>
     </div>

@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { decryptPayload, encryptPayload } from "@/lib/crypto";
 
 export interface DriveFolderInfo {
@@ -19,10 +21,17 @@ export interface DriveFileInfo {
 /**
  * Retrieves a valid Google Drive Access Token for a counsellor.
  * Automatically handles token decryption and refresh token grant if needed.
+ *
+ * Pass an authenticated Supabase client (e.g. `createAuthedSupabase(token)`)
+ * when running server-side so RLS on `drive_connections` passes. Falls back to
+ * the shared client when omitted.
  */
-export async function getValidAccessToken(counsellorEmail: string): Promise<string | null> {
+export async function getValidAccessToken(
+  counsellorEmail: string,
+  client: SupabaseClient<Database> = supabase,
+): Promise<string | null> {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from("drive_connections")
       .select("encrypted_access_token, encrypted_refresh_token, is_connected")
       .eq("counsellor_email", counsellorEmail)
@@ -61,7 +70,7 @@ export async function getValidAccessToken(counsellorEmail: string): Promise<stri
           const newAccessToken = newTokenData.access_token;
           const encNewAccessToken = encryptPayload({ token: newAccessToken });
 
-          await supabase
+          await client
             .from("drive_connections")
             .update({
               encrypted_access_token: encNewAccessToken,
@@ -174,6 +183,12 @@ export async function uploadFileToDriveFolder(
         webViewLink: data.webViewLink || `https://drive.google.com/file/d/${data.id}/view`,
       };
     }
+
+    const errBody = await res.text();
+    console.error(
+      `[Drive Upload Error] ${fileName} -> HTTP ${res.status} (isAppData=${isAppData}):`,
+      errBody,
+    );
   } catch (err) {
     console.error("[Drive Upload Error] Failed to upload file to Google Drive:", err);
   }
@@ -213,6 +228,8 @@ export async function fetchFileFromAppDataFolder(
           return await fileRes.json();
         }
       }
+    } else {
+      console.error(`[Drive AppData Fetch Error] ${fileName} -> HTTP ${res.status}:`, await res.text());
     }
   } catch (err) {
     console.error("[Drive AppData Fetch Error] Failed to fetch file from appDataFolder:", err);

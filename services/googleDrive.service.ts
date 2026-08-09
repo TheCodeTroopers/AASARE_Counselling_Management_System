@@ -32,6 +32,29 @@ import { supabase } from "@/integrations/supabase/client";
 export async function getDriveStatus() {
   if (typeof window === "undefined") return { connected: false, lastSync: "Never" };
 
+  // Prefer the drive status API route — returns folder id & url too
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    const res = await fetch("/api/drive/status", {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.data) {
+        return {
+          connected: Boolean(json.data.connected),
+          lastSync: json.data.lastSync,
+          folderName: json.data.folderName,
+          folderId: json.data.folderId,
+          folderUrl: json.data.folderUrl,
+        };
+      }
+    }
+  } catch {
+    // API route fallback
+  }
+
   try {
     const { data: authData } = await supabase.auth.getUser();
     const email = authData?.user?.email;
@@ -39,7 +62,7 @@ export async function getDriveStatus() {
     if (email) {
       const { data } = await supabase
         .from("drive_connections")
-        .select("is_connected, updated_at")
+        .select("is_connected, updated_at, folder_name, folder_id, folder_url")
         .eq("counsellor_email", email)
         .single();
 
@@ -47,6 +70,11 @@ export async function getDriveStatus() {
         return {
           connected: Boolean(data.is_connected),
           lastSync: new Date(data.updated_at).toLocaleTimeString(),
+          folderName: data.folder_name || "AASARE Counselling Case Sheets",
+          folderId: data.folder_id || "",
+          folderUrl: data.folder_id
+            ? `https://drive.google.com/drive/folders/${data.folder_id}`
+            : data.folder_url || "https://drive.google.com/drive/my-drive",
         };
       }
     }

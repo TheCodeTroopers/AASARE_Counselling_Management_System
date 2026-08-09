@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/integrations/supabase/client";
+import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -8,7 +8,8 @@ export async function GET(req: NextRequest) {
     const searchQuery = searchParams.get("search");
     const limitParam = searchParams.get("limit");
 
-    const { data: authData } = await supabase.auth.getUser();
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const { data: authData } = await supabase.auth.getUser(getBearerToken(req) || undefined);
     const userId = authData?.user?.id;
 
     if (!userId) {
@@ -63,16 +64,27 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { data: authData } = await supabase.auth.getUser();
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const token = getBearerToken(req);
+    const { data: authData } = await supabase.auth.getUser(token || undefined);
     const userEmail = authData?.user?.email || "counsellor@sode-edu.in";
     const userId = authData?.user?.id;
+    const userName =
+      authData?.user?.user_metadata?.full_name ||
+      authData?.user?.user_metadata?.name ||
+      authData?.user?.email ||
+      "";
+
+    // Set signature name to the submitting account and date to today (server-side)
+    body.iccSignatureName = userName;
+    body.caseDate = new Date().toISOString().slice(0, 10);
 
     const newId = `CASE-${Date.now().toString().slice(-6)}`;
 
     // 1. Upload JSON to hidden appDataFolder & Report PDF to root folder
     const { getValidAccessToken, uploadFileToDriveFolder } = await import("@/lib/google-drive");
     const { generateCaseReportPDF } = await import("@/lib/pdf-generator");
-    const accessToken = await getValidAccessToken(userEmail);
+    const accessToken = await getValidAccessToken(userEmail, supabase);
 
     let driveFileUrl = null;
 
@@ -93,12 +105,15 @@ export async function POST(req: NextRequest) {
         `${newId}_data.json`,
         "application/json",
         jsonBuffer,
-        true, // isAppData = true
+        true, // isAppData = true (requires drive.appdata scope)
       );
 
       // B. Generate and upload official Case Report PDF to visible root folder
       try {
         const pdfBuffer = await generateCaseReportPDF(newId, body);
+        console.log(
+          `[Case POST] PDF generated: ${newId}_report.pdf (${pdfBuffer.length} bytes) -> folder ${folderId}`,
+        );
         const pdfResult = await uploadFileToDriveFolder(
           accessToken,
           folderId,
@@ -110,6 +125,9 @@ export async function POST(req: NextRequest) {
 
         if (pdfResult) {
           driveFileUrl = pdfResult.webViewLink;
+          console.log(`[Case POST] PDF uploaded: ${pdfResult.webViewLink}`);
+        } else {
+          console.error("[Case POST] PDF upload returned null (see Drive Upload Error log above)");
         }
       } catch (pdfErr) {
         console.error("[PDF Error] Failed to generate PDF report:", pdfErr);

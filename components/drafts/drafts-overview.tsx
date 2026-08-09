@@ -9,7 +9,7 @@ import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 export function DraftsOverview() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["drafts"],
-    queryFn: getDrafts,
+    queryFn: () => getDrafts(),
   });
 
   if (isLoading) return <LoadingSkeleton rows={3} />;
@@ -26,7 +26,7 @@ export function DraftsOverview() {
       subtitle="Continue editing or delete saved intake drafts."
     >
       <div className="space-y-3">
-        {data?.data.map((draft) => (
+        {data?.data.map((draft: any) => (
           <div
             key={draft.id}
             className="flex flex-col gap-3 rounded-[20px] border border-border bg-white p-4 shadow-card md:flex-row md:items-center md:justify-between"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/integrations/supabase/client";
+import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,11 +11,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "No file provided" }, { status: 400 });
     }
 
-    const { data: userData } = await supabase.auth.getUser();
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const token = getBearerToken(req);
+    const { data: userData } = await supabase.auth.getUser(token || undefined);
     const userEmail = userData?.user?.email || "counsellor@sode-edu.in";
 
     const { getValidAccessToken, uploadFileToDriveFolder } = await import("@/lib/google-drive");
-    const accessToken = await getValidAccessToken(userEmail);
+    const accessToken = await getValidAccessToken(userEmail, supabase);
 
     let driveFileUrl = `https://drive.google.com/drive/my-drive`;
     let driveFileId = `drive-file-${Date.now()}`;

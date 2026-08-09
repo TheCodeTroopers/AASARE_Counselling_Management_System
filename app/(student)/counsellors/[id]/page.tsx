@@ -22,6 +22,7 @@ import { getCounsellor } from "@/lib/counsellors";
 import { createAppointment, fetchBookedSlots } from "@/lib/appointments";
 import { fetchAvailableSlots, fetchUnavailableDates, type SlotRow } from "@/lib/slots";
 import { useAuth } from "@/hooks/use-auth";
+import { useNotifications } from "@/hooks/use-notifications";
 
 function getNext7Days() {
   const days: { iso: string; label: string; dow: string; day: string }[] = [];
@@ -46,6 +47,7 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
 
   const router = useRouter();
   const { user } = useAuth();
+  const { addNotification } = useNotifications();
   const days = useMemo(() => getNext7Days(), []);
   const [selectedDate, setSelectedDate] = useState(days[0].iso);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -75,10 +77,49 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
 
   const isSelectedDateUnavailable = unavailableDates.includes(selectedDate);
 
-  const slots = availableSlots.map((s) => ({
-    time: s.slot_time,
-    booked: bookedTimes.includes(s.slot_time),
-  }));
+  // Determine weekday short code for selected date (e.g. "Mon", "Tue")
+  const selectedWeekday = useMemo(() => {
+    if (!selectedDate) return "Mon";
+    const [year, month, day] = selectedDate.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
+    return d.toLocaleDateString("en-US", { weekday: "short" });
+  }, [selectedDate]);
+
+  // Filter and sort available slots chronologically for the selected date's weekday
+  const slots = useMemo(() => {
+    const parseTimeToMinutes = (timeStr: string) => {
+      if (!timeStr) return 0;
+      const clean = timeStr.includes("|") ? timeStr.split("|")[1].trim() : timeStr.trim();
+      const match = clean.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      if (!match) return 0;
+      let hours = parseInt(match[1], 10);
+      const minutes = parseInt(match[2], 10);
+      const ampm = match[3].toUpperCase();
+      if (ampm === "PM" && hours < 12) hours += 12;
+      if (ampm === "AM" && hours === 12) hours = 0;
+      return hours * 60 + minutes;
+    };
+
+    const dayFiltered = availableSlots.filter((s) => {
+      if (s.slot_time.includes("|")) {
+        const [dayPrefix] = s.slot_time.split("|").map((x) => x.trim());
+        return dayPrefix.toLowerCase() === selectedWeekday.toLowerCase();
+      }
+      return true; // legacy format fallback
+    });
+
+    const mapped = dayFiltered.map((s) => {
+      const cleanTime = s.slot_time.includes("|")
+        ? s.slot_time.split("|")[1].trim()
+        : s.slot_time;
+      return {
+        time: cleanTime,
+        booked: bookedTimes.includes(cleanTime),
+      };
+    });
+
+    return mapped.sort((a, b) => parseTimeToMinutes(a.time) - parseTimeToMinutes(b.time));
+  }, [availableSlots, selectedWeekday, bookedTimes]);
 
   useEffect(() => {
     if (!counsellor) return;
@@ -152,6 +193,12 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
       return;
     }
     toast.success("Request sent. Awaiting the counsellor's approval.");
+    addNotification({
+      title: "Appointment Requested",
+      message: `Session request sent to ${counsellor.name} for ${selectedDate} at ${selectedTime}.`,
+      type: "appointment",
+      link: "/my-appointments",
+    });
     router.push("/my-appointments");
   };
 

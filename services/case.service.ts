@@ -1,5 +1,11 @@
 import { supabase } from "@/integrations/supabase/client";
 
+async function authHeaders(): Promise<Record<string, string>> {
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export type CaseSheetRecord = {
   id: string;
   studentName: string;
@@ -14,7 +20,7 @@ export type CaseSheetRecord = {
 export async function createCase(formData: any) {
   const res = await fetch("/api/cases", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify(formData),
   });
 
@@ -27,7 +33,7 @@ export async function createCase(formData: any) {
 export async function saveDraft(formData: any) {
   const res = await fetch("/api/cases", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify({ ...formData, isDraft: true }),
   });
 
@@ -40,7 +46,7 @@ export async function saveDraft(formData: any) {
 export async function updateCase(id: string, formData: any) {
   const res = await fetch(`/api/cases/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...(await authHeaders()) },
     body: JSON.stringify(formData),
   });
 
@@ -53,17 +59,19 @@ export async function updateCase(id: string, formData: any) {
 export async function deleteCase(id: string) {
   const res = await fetch(`/api/cases/${id}`, {
     method: "DELETE",
+    headers: await authHeaders(),
   });
 
   if (!res.ok) {
-    return { success: true, message: `Case ${id} deleted` };
+    const json = await res.json().catch(() => null);
+    throw new Error(json?.message || `Failed to delete case ${id}.`);
   }
   return await res.json();
 }
 
 export async function getCase(id: string) {
   // On-Demand loading of single case JSON from Google Drive via Next.js API
-  const res = await fetch(`/api/cases/${id}`);
+  const res = await fetch(`/api/cases/${id}`, { headers: await authHeaders() });
   if (res.ok) {
     const json = await res.json();
     if (json.data) return json;
@@ -129,7 +137,7 @@ export async function getAllCases(params?: { status?: string; search?: string; l
   if (params?.limit) searchParams.set("limit", String(params.limit));
 
   const url = `/api/cases${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
-  const res = await fetch(url);
+  const res = await fetch(url, { headers: await authHeaders() });
   if (res.ok) {
     const json = await res.json();
     return json;
@@ -139,7 +147,7 @@ export async function getAllCases(params?: { status?: string; search?: string; l
 
 export async function getDrafts() {
   // Query backend directly with ?status=draft filter parameter (zero full table scanning)
-  const res = await fetch("/api/cases?status=draft");
+  const res = await fetch("/api/cases?status=draft", { headers: await authHeaders() });
   if (res.ok) {
     const json = await res.json();
     return { success: true, message: "Draft list loaded", data: json.data || [] };

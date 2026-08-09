@@ -1,48 +1,68 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { Eye, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Eye, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getAllCases, deleteCase, type CaseSheetRecord } from "@/services/case.service";
 import { SearchFilterBar } from "@/components/common/search-filter-bar";
 import { SectionCard } from "@/components/common/section-card";
 import { StatusBadge } from "@/components/common/status-badge";
 import { Button } from "@/components/common/button";
+import { Modal } from "@/components/common/modal";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
 export function CaseManagementTable() {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams?.get("search") || "";
+  const [search, setSearch] = useState(initialSearch);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [pendingDelete, setPendingDelete] = useState<CaseSheetRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const q = searchParams?.get("search");
+    if (q !== null && q !== undefined) {
+      setSearch(q);
+    }
+  }, [searchParams]);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["cases"],
-    queryFn: getAllCases,
+    queryFn: () => getAllCases(),
   });
 
   const casesData = data?.data as CaseSheetRecord[] | undefined;
 
   const filteredCases = useMemo(() => {
     const list = casesData ?? [];
+    const q = search.trim().toLowerCase();
+    if (!q) return list;
     return list.filter((item: CaseSheetRecord) =>
-      [item.id, item.studentName, item.department]
+      [item.id, item.studentName, item.department, item.semester, item.status]
+        .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(search.toLowerCase()),
+        .includes(q),
     );
   }, [casesData, search]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(`Are you sure you want to delete Case Record ${id}?`)) return;
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
     try {
-      await deleteCase(id);
-      toast.success(`Case ${id} deleted.`);
+      await deleteCase(pendingDelete.id);
+      toast.success(`Case ${pendingDelete.id} deleted.`);
+      setPendingDelete(null);
       await refetch();
       queryClient.invalidateQueries({ queryKey: ["cases"] });
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to delete case.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -125,15 +145,17 @@ export function CaseManagementTable() {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/case/${item.id}`}
-                        className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
                       >
                         <Eye className="h-3.5 w-3.5" /> Open Sheet
                       </Link>
                       <button
-                        onClick={() => handleDelete(item.id)}
-                        className="rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                        type="button"
+                        onClick={() => setPendingDelete(item)}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
+                        title="Delete Case"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
                       </button>
                     </div>
                   </td>
@@ -171,13 +193,14 @@ export function CaseManagementTable() {
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                 <Link
                   href={`/case/${item.id}`}
-                  className="inline-flex items-center gap-1 rounded-xl bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary-hover"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
                 >
                   <Eye className="h-3.5 w-3.5" /> Open Sheet
                 </Link>
                 <button
-                  onClick={() => handleDelete(item.id)}
-                  className="rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-medium text-rose-700 hover:bg-rose-100 transition cursor-pointer"
+                  type="button"
+                  onClick={() => setPendingDelete(item)}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
                 >
                   <Trash2 className="h-3.5 w-3.5" /> Delete
                 </button>
@@ -186,6 +209,43 @@ export function CaseManagementTable() {
           ))}
         </div>
       )}
+
+      <Modal
+        open={Boolean(pendingDelete)}
+        title="Delete Case Record"
+        description={
+          pendingDelete
+            ? `This will permanently delete Case ${pendingDelete.id} and its Google Drive backup.`
+            : undefined
+        }
+        onClose={() => {
+          if (!deleting) setPendingDelete(null);
+        }}
+      >
+        {pendingDelete ? (
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
+              <div className="text-sm text-rose-800">
+                <p className="font-semibold">
+                  {pendingDelete.studentName} · {pendingDelete.id}
+                </p>
+                <p className="mt-0.5">
+                  This action cannot be undone. The case sheet and its Drive backup will be removed.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setPendingDelete(null)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Deleting..." : "Delete Case"}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
     </SectionCard>
   );
 }

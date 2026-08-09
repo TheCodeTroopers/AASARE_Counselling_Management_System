@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Bell, LayoutGrid, Moon, Search, Sun } from "lucide-react";
+import { Bell, LayoutGrid, Search } from "lucide-react";
 import { COUNSELLOR_NAV_ITEMS } from "@/constants/navigation";
 import { cn } from "@/utils/cn";
 import { NotificationDrawer } from "@/components/notifications/notification-drawer";
@@ -15,7 +15,7 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [isDark, setIsDark] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState("");
   const { user, profile, signOut } = useAuth();
   const { unreadCount } = useNotifications();
 
@@ -28,14 +28,9 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
   });
 
   return (
-    <div
-      className={cn(
-        "min-h-screen transition-colors duration-300",
-        isDark ? "bg-[#22111b] text-[#fdf8f4]" : "bg-background text-text",
-      )}
-    >
+    <div className="min-h-screen bg-background text-text transition-colors duration-300">
       <div className="flex min-h-screen">
-        <aside className="hidden w-72 border-r border-[#a76f87]/30 bg-primary p-6 lg:block print:hidden">
+        <aside className="sticky top-0 hidden h-screen w-72 shrink-0 overflow-y-auto border-r border-[#a76f87]/30 bg-primary p-6 lg:block print:hidden">
           <div className="mb-8 flex items-center gap-3">
             <div className="rounded-2xl bg-secondary p-3 text-primary shadow-soft">
               <LayoutGrid className="h-5 w-5" />
@@ -96,28 +91,30 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                   <span className="text-sm font-bold text-primary">A</span>
                 </div>
                 <div>
-                  <p
-                    className={cn(
-                      "text-lg font-semibold",
-                      isDark ? "text-white" : "text-slate-900",
-                    )}
-                  >
-                    {counsellorName}
-                  </p>
-                  <p className={cn("text-sm", isDark ? "text-slate-400" : "text-slate-500")}>
-                    {todayFormatted}
-                  </p>
+                  <p className="text-lg font-semibold text-slate-900">{counsellorName}</p>
+                  <p className="text-sm text-slate-500">{todayFormatted}</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="hidden items-center rounded-2xl border border-border bg-secondary px-3 py-2 md:flex">
-                  <Search className="mr-2 h-4 w-4 text-text-secondary" />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (globalSearch.trim()) {
+                      router.push(`/case-management?search=${encodeURIComponent(globalSearch.trim())}` as any);
+                    }
+                  }}
+                  className="hidden items-center rounded-2xl border border-border bg-secondary px-3 py-2 md:flex focus-within:ring-2 focus-within:ring-primary/40"
+                >
+                  <Search className="mr-2 h-4 w-4 text-text-secondary shrink-0" />
                   <input
-                    className="bg-transparent text-sm outline-none placeholder:text-text-secondary"
-                    placeholder="Search"
+                    type="text"
+                    value={globalSearch}
+                    onChange={(e) => setGlobalSearch(e.target.value)}
+                    className="bg-transparent text-sm outline-none placeholder:text-text-secondary w-44 lg:w-60"
+                    placeholder="Search cases, students, USN..."
                   />
-                </div>
+                </form>
 
                 <div className="relative">
                   <button
@@ -138,13 +135,6 @@ export function CounsellorShell({ children }: { children: React.ReactNode }) {
                     </div>
                   ) : null}
                 </div>
-
-                <button
-                  onClick={() => setIsDark((current) => !current)}
-                  className="rounded-2xl border border-border bg-white p-2 text-primary transition-all duration-300 hover:-translate-y-0.5 hover:shadow-soft"
-                >
-                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </button>
               </div>
             </div>
           </header>

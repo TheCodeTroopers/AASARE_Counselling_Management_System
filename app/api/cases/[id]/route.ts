@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/integrations/supabase/client";
+import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { data: authData } = await supabase.auth.getUser();
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const token = getBearerToken(req);
+    const { data: authData } = await supabase.auth.getUser(token || undefined);
     const userEmail = authData?.user?.email || "counsellor@sode-edu.in";
 
     // 1. Fetch metadata from Supabase
@@ -12,12 +14,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     // 2. Load JSON data on-demand from Google Drive appDataFolder if token available
     const { getValidAccessToken, fetchFileFromAppDataFolder } = await import("@/lib/google-drive");
-    const accessToken = await getValidAccessToken(userEmail);
+    const accessToken = await getValidAccessToken(userEmail, supabase);
+
+    console.log("[Case GET] id:", id, "userEmail:", userEmail, "accessToken:", accessToken ? "OK" : "NULL");
 
     let driveData = null;
 
     if (accessToken) {
       driveData = await fetchFileFromAppDataFolder(accessToken, `${id}_data.json`);
+      console.log("[Case GET] driveData:", JSON.stringify(driveData, null, 2));
+    } else {
+      console.log("[Case GET] Skipped Drive fetch — no access token (RLS blocked or not connected)");
     }
 
     return NextResponse.json({
@@ -45,13 +52,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const { data: authData } = await supabase.auth.getUser();
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const token = getBearerToken(req);
+    const { data: authData } = await supabase.auth.getUser(token || undefined);
     const userEmail = authData?.user?.email || "counsellor@sode-edu.in";
     const userId = authData?.user?.id;
 
     const { getValidAccessToken, uploadFileToDriveFolder } = await import("@/lib/google-drive");
     const { generateCaseReportPDF } = await import("@/lib/pdf-generator");
-    const accessToken = await getValidAccessToken(userEmail);
+    const accessToken = await getValidAccessToken(userEmail, supabase);
 
     let driveJsonId = null;
     let driveFileUrl = null;
@@ -74,7 +83,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         `${id}_data.json`,
         "application/json",
         jsonBuffer,
-        true, // isAppData = true
+        true, // isAppData = true (requires drive.appdata scope)
       );
 
       if (jsonResult) {
@@ -130,6 +139,74 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         driveFileUrl,
         updatedAt: new Date().toISOString(),
       },
+    });
+  } catch (err: unknown) {
+    return NextResponse.json({ success: false, message: (err as Error).message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const supabase = createAuthedSupabase(getBearerToken(req));
+    const token = getBearerToken(req);
+    const { data: authData } = await supabase.auth.getUser(token || undefined);
+    const userId = authData?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { error } = await supabase.from("case_sheets").delete().eq("id", id);
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 500 },
+      );
+    }
+
+    // Best-effort cleanup of the Drive files (JSON + PDF) for this case.
+    try {
+      const userEmail = authData?.user?.email || "counsellor@sode-edu.in";
+      const { getValidAccessToken } = await import("@/lib/google-drive");
+      const accessToken = await getValidAccessToken(userEmail, supabase);
+      if (accessToken) {
+        const deleteFile = async (fileId: string) => {
+          await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+        };
+
+        // PDF lives in the visible Drive space
+        const pdfQuery = encodeURIComponent(`name = '${id}_report.pdf'`);
+        const pdfRes = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q=${pdfQuery}&fields=files(id,name)&spaces=drive`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+        if (pdfRes.ok) {
+          for (const file of (await pdfRes.json()).files || []) await deleteFile(file.id);
+        }
+
+        // JSON lives in the hidden appDataFolder
+        const jsonQuery = encodeURIComponent(`name = '${id}_data.json'`);
+        const jsonRes = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q=${jsonQuery}&fields=files(id,name)&spaces=appDataFolder`,
+          { headers: { Authorization: `Bearer ${accessToken}` } },
+        );
+        if (jsonRes.ok) {
+          for (const file of (await jsonRes.json()).files || []) await deleteFile(file.id);
+        }
+      }
+    } catch (driveErr) {
+      console.error("[Case Delete] Failed to clean up Drive files:", driveErr);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Case ${id} deleted.`,
+      data: { id },
     });
   } catch (err: unknown) {
     return NextResponse.json({ success: false, message: (err as Error).message }, { status: 500 });

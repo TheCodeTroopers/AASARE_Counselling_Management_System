@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Eye, Check, XCircle, FileText, Edit3 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,18 +17,29 @@ import { StatusBadge } from "@/components/common/status-badge";
 import { Modal } from "@/components/common/modal";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 import type { AppointmentItem } from "@/types/appointment";
+import { useNotifications } from "@/hooks/use-notifications";
 
 const tabs = ["all", "pending", "approved", "rejected", "completed"] as const;
 
 export function AppointmentManagement() {
-  const [search, setSearch] = useState("");
+  const searchParams = useSearchParams();
+  const initialSearch = searchParams?.get("search") || "";
+  const [search, setSearch] = useState(initialSearch);
   const [statusFilter, setStatusFilter] = useState<(typeof tabs)[number]>("all");
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentItem | null>(null);
   const [modalMode, setModalMode] = useState<"view" | "reject">("reject");
   const [rejectionReason, setRejectionReason] = useState("");
   const [processingId, setProcessingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const q = searchParams?.get("search");
+    if (q !== null && q !== undefined) {
+      setSearch(q);
+    }
+  }, [searchParams]);
+
   const queryClient = useQueryClient();
+  const { addNotification, refreshNotifications } = useNotifications();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["appointments"],
@@ -66,13 +78,21 @@ export function AppointmentManagement() {
 
   const handleAccept = async (id: string) => {
     setProcessingId(id);
+    const targetApt = appointmentsData?.find((a) => a.id === id);
     try {
       await acceptAppointment(id);
       toast.success("Appointment approved successfully!");
+      addNotification({
+        title: "Appointment Approved",
+        message: `Appointment for ${targetApt?.studentName || "student"} on ${targetApt?.appointmentDate || "selected date"} at ${targetApt?.time || "slot"} was approved.`,
+        type: "appointment",
+        link: "/appointments",
+      });
       if (selectedAppointment && selectedAppointment.id === id) {
         setSelectedAppointment(null);
       }
       await refetch();
+      await refreshNotifications();
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to approve appointment.");
@@ -88,9 +108,16 @@ export function AppointmentManagement() {
     try {
       await rejectAppointment(selectedAppointment.id, finalReason);
       toast.success("Appointment rejected with note.");
+      addNotification({
+        title: "Appointment Declined",
+        message: `Appointment for ${selectedAppointment.studentName} on ${selectedAppointment.appointmentDate} was declined. Reason: ${finalReason}`,
+        type: "appointment",
+        link: "/appointments",
+      });
       setSelectedAppointment(null);
       setRejectionReason("");
       await refetch();
+      await refreshNotifications();
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
     } catch (err: unknown) {
       toast.error((err as Error).message || "Failed to reject appointment.");

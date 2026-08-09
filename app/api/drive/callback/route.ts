@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Database } from "@/integrations/supabase/types";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get("code");
   const error = searchParams.get("error");
+  const state = searchParams.get("state");
+
+  // Decode the state payload (btoa(encodeURIComponent(JSON))) that carries the
+  // logged-in user's supabase token + email, so we can resolve the correct
+  // counsellor server-side.
+  let stateToken = "";
+  let stateEmail = "";
+  if (state) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(atob(state)));
+      stateToken = parsed.token || "";
+      stateEmail = parsed.email || "";
+    } catch {
+      // Ignore malformed state
+    }
+  }
 
   if (error) {
     return new NextResponse(
@@ -39,16 +56,43 @@ export async function GET(req: NextRequest) {
       if (tokenData.access_token) {
         const { encryptPayload } = await import("@/lib/crypto");
         const { createDriveFolder } = await import("@/lib/google-drive");
-        const { supabase } = await import("@/integrations/supabase/client");
+        const { createClient } = await import("@supabase/supabase-js");
+
+        // Use the user's token from `state` so RLS recognizes the request.
+        const SUPABASE_URL =
+          process.env.NEXT_PUBLIC_SUPABASE_URL ||
+          process.env.SUPABASE_URL ||
+          "https://vgsyirselvakpjcfwfgi.supabase.co";
+        const SUPABASE_KEY =
+          process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+          process.env.SUPABASE_PUBLISHABLE_KEY ||
+          "sb_publishable_OhN4Zj3bW8Z6gv-SeHH2xw_3lF7RPyW";
+        const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
+          global: {
+            headers: stateToken ? { Authorization: `Bearer ${stateToken}` } : undefined,
+          },
+          auth: {
+            storage: undefined,
+            persistSession: false,
+            autoRefreshToken: false,
+          },
+        });
 
         const encAccessToken = encryptPayload({ token: tokenData.access_token });
         const encRefreshToken = tokenData.refresh_token
           ? encryptPayload({ token: tokenData.refresh_token })
           : null;
 
-        const { data: authData } = await supabase.auth.getUser();
-        const userId = authData?.user?.id || null;
-        const userEmail = authData?.user?.email || "counsellor@sode-edu.in";
+        // Resolve the real user from the state payload token; fall back to the
+        // default email if unavailable.
+        let userId: string | null = null;
+        let userEmail = stateEmail || "counsellor@sode-edu.in";
+
+        if (stateToken) {
+          const { data: authData } = await supabase.auth.getUser(stateToken);
+          userId = authData?.user?.id || null;
+          if (authData?.user?.email) userEmail = authData.user.email;
+        }
 
         // Create dedicated "AASARE Counselling Case Sheets" folder in Google Drive
         const folder = await createDriveFolder(
