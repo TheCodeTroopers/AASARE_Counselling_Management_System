@@ -35,6 +35,50 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function loadAdminDashboard() {
+      const mockProfileStr = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!authData?.user && mockProfileStr) {
+        // Load mock admin statistics
+        setCounsellorCount(9);
+        setSessionCount(24);
+        setPendingCount(3);
+        setRecent([
+          {
+            student: "Rahul Kumar",
+            counsellor: "Dr. Meera S. (CSE)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 10:30 AM`,
+            status: "Pending",
+          },
+          {
+            student: "Priya Sharma",
+            counsellor: "Prof. Deepika (Civil)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 02:00 PM`,
+            status: "Approved",
+          },
+          {
+            student: "Amit Hegde",
+            counsellor: "Mrs. Reshma Nayak (Maths)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 11:00 AM`,
+            status: "Approved",
+          },
+          {
+            student: "Sneha Rao",
+            counsellor: "Dr. Meera S. (CSE)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 09:30 AM`,
+            status: "Rejected",
+          },
+          {
+            student: "Vikram Sen",
+            counsellor: "Mr. Karthik V. (Mech)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 04:00 PM`,
+            status: "Pending",
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+
       // 1. Fetch counsellors count
       const { data: counsellors } = await supabase
         .from("profiles")

@@ -99,7 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (currentSession?.user) {
           await fetchProfile(currentSession.user);
         } else {
-          setProfile(null);
+          const mock = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+          if (mock) {
+            try {
+              setProfile(JSON.parse(mock));
+            } catch (e) {
+              setProfile(null);
+            }
+          } else {
+            setProfile(null);
+          }
         }
         setLoading(false);
       }
@@ -113,7 +122,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (s?.user) {
         await fetchProfile(s.user);
       } else {
-        setProfile(null);
+        const mock = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+        if (mock) {
+          try {
+            setProfile(JSON.parse(mock));
+          } catch (e) {
+            setProfile(null);
+          }
+        } else {
+          setProfile(null);
+        }
       }
       setLoading(false);
     });
@@ -137,6 +155,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin: role === "admin",
     signOut: async () => {
       await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("mock_profile");
+      }
       setProfile(null);
     },
     refreshProfile: async () => {
