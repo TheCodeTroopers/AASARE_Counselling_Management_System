@@ -1,5 +1,5 @@
 export const COUNSELLOR_NAV_ITEMS = [
-  { label: 'Dashboard', href: '/dashboard' },
+  { label: 'Dashboard',href: '/dashboard' },
   { label: 'Appointments', href: '/appointments' },
   { label: 'Availability', href: '/availability' },
   { label: 'Daily Slots', href: '/slots' },

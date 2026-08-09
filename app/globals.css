@@ -1,9 +1,43 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+@source "./**/*.{ts,tsx}";
+@source "../components/**/*.{ts,tsx}";
+@source "../src/**/*.{ts,tsx}";
+
+@theme {
+  --color-primary: #6D214F;
+  --color-primary-foreground: #FCFAF8;
+  --color-secondary: #F8F3EE;
+  --color-secondary-foreground: #6D214F;
+  --color-gold: #E5B842;
+  --color-gold-foreground: #2F2F2F;
+  --color-cream: #F8F3EE;
+  --color-muted: #F4EBE1;
+  --color-muted-foreground: #7E6E65;
+  --color-accent: #C89B7B;
+  --color-accent-foreground: #FCFAF8;
+  --color-background: #FCFAF8;
+  --color-foreground: #2F2F2F;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #2F2F2F;
+  --color-border: #E8DDD5;
+}
 
 :root {
   color-scheme: light;
+  --primary: #6D214F;
+  --primary-foreground: #FCFAF8;
+  --secondary: #F8F3EE;
+  --secondary-foreground: #6D214F;
+  --gold: #E5B842;
+  --gold-foreground: #2F2F2F;
+  --muted: #F4EBE1;
+  --muted-foreground: #7E6E65;
+  --background: #FCFAF8;
+  --foreground: #2F2F2F;
+  --card: #FFFFFF;
+  --card-foreground: #2F2F2F;
+  --border: #E8DDD5;
 }
 
 * {
@@ -13,16 +47,16 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fbff 0%, #f8fafc 100%);
-  color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(135deg, #fcfaf8 0%, #f8f3ee 100%);
+  color: #2f2f2f;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px);
+  border: 1px solid #e8ddd5;
+  box-shadow: 0 18px 40px rgba(109, 33, 79, 0.08);
 }
 
 input,
@@ -31,11 +65,16 @@ select {
   font: inherit;
 }
 
+::selection {
+  background: #f8f3ee;
+  color: #6d214f;
+}
+
 ::-webkit-scrollbar {
   width: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c89b7b;
   border-radius: 9999px;
 }

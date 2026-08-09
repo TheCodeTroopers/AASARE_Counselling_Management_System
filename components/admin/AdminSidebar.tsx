@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import {
   LayoutDashboard,
@@ -23,6 +23,7 @@ const nav: Array<{ label: string; href: string; icon: typeof LayoutDashboard }> 
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-[#e9dfd0] bg-[#fbf6ee]">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-[#e9dfd0]">
@@ -78,7 +79,12 @@ export default function AdminSidebar() {
           <p className="mt-2 text-[11px] leading-relaxed text-[#7a5a4a]">
             Administrative actions are logged. Handle counsellor and student data with care.
           </p>
-          <button className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#e9dfd0] bg-white px-3 py-1.5 text-xs font-medium text-[#4a2b30] hover:bg-[#faf3e2]">
+          <button 
+            onClick={() => {
+              router.push('/login');
+            }}
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#e9dfd0] bg-white px-3 py-1.5 text-xs font-medium text-[#4a2b30] hover:bg-[#faf3e2]"
+          >
             <LogOut className="h-3.5 w-3.5" />
             Sign out
           </button>

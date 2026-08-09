@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, Download, X, Calendar, Clock, User, Mail, Phone, FileText } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-type Status = "Pending" | "Approved" | "Completed" | "Cancelled";
+type Status = "Pending" | "Approved" | "Completed" | "Cancelled" | "Rejected";
 
 type Appointment = {
   id: string;
@@ -18,29 +19,74 @@ type Appointment = {
   notes?: string;
 };
 
-const seed: Appointment[] = [
-  { id: "AP-1042", student: "Neha R.", studentEmail: "neha.r@college.edu", studentPhone: "+91 98xxxxxx01", counsellor: "Dr. Deepika B V", date: "2026-07-20", time: "03:00 PM", status: "Approved", reason: "Academic stress", notes: "Follow-up from last week." },
-  { id: "AP-1043", student: "Arjun P.", studentEmail: "arjun.p@college.edu", studentPhone: "+91 98xxxxxx02", counsellor: "Ms. Savitha A Shenoy", date: "2026-07-20", time: "04:30 PM", status: "Pending", reason: "Career guidance" },
-  { id: "AP-1044", student: "Riya S.", studentEmail: "riya.s@college.edu", studentPhone: "+91 98xxxxxx03", counsellor: "Dr. Deepika B V", date: "2026-07-21", time: "10:00 AM", status: "Approved", reason: "Anxiety management" },
-  { id: "AP-1045", student: "Kiran M.", studentEmail: "kiran.m@college.edu", studentPhone: "+91 98xxxxxx04", counsellor: "Dr. Subbulakshmi N Karanth", date: "2026-07-21", time: "01:15 PM", status: "Cancelled", reason: "Family concerns", notes: "Rescheduled to next week." },
-  { id: "AP-1046", student: "Ishaan T.", studentEmail: "ishaan.t@college.edu", studentPhone: "+91 98xxxxxx05", counsellor: "Ms. Shashikala R", date: "2026-07-18", time: "11:00 AM", status: "Completed", reason: "Peer relationships" },
-  { id: "AP-1047", student: "Ananya K.", studentEmail: "ananya.k@college.edu", studentPhone: "+91 98xxxxxx06", counsellor: "Dr. Deepika B V", date: "2026-07-15", time: "02:00 PM", status: "Completed", reason: "Exam preparation" },
-  { id: "AP-1048", student: "Rohan D.", studentEmail: "rohan.d@college.edu", studentPhone: "+91 98xxxxxx07", counsellor: "Dr. Neha Lakhotia", date: "2026-07-22", time: "09:30 AM", status: "Pending", reason: "Sleep issues" },
-];
-
-const statusStyles: Record<Status, string> = {
+const statusStyles: Record<string, string> = {
   Pending: "bg-[#faf3e2] text-[#8a6a1f] border-[#ecdcb0]",
   Approved: "bg-[#e9f3ea] text-[#2f6b3a] border-[#cfe3d1]",
   Completed: "bg-[#e6ecf5] text-[#2b3f6b] border-[#c9d5ec]",
   Cancelled: "bg-[#f5e8ea] text-[#6b1e2b] border-[#e9c9ce]",
+  Rejected: "bg-[#f5e8ea] text-[#6b1e2b] border-[#e9c9ce]",
 };
 
 export default function AppointmentsPage() {
-  const [items] = useState<Appointment[]>(seed);
+  const [items, setItems] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"All" | Status>("All");
   const [date, setDate] = useState("");
   const [selected, setSelected] = useState<Appointment | null>(null);
+
+  useEffect(() => {
+    async function fetchAllAppointments() {
+      setLoading(true);
+      const { data: appts, error } = await supabase
+        .from("appointments")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Admin error fetching appointments:", error);
+        setLoading(false);
+        return;
+      }
+
+      const list = appts || [];
+      if (list.length === 0) {
+        setItems([]);
+        setLoading(false);
+        return;
+      }
+
+      const studentIds = Array.from(new Set(list.map((a) => a.user_id)));
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, usn, department")
+        .in("id", studentIds);
+
+      const profileMap = new Map((profilesData || []).map((p) => [p.id, p]));
+
+      const formatted: Appointment[] = list.map((a) => {
+        const p = profileMap.get(a.user_id);
+        const statusCap = (a.status.charAt(0).toUpperCase() + a.status.slice(1)) as Status;
+        return {
+          id: a.id.slice(0, 8).toUpperCase(),
+          student: p?.full_name || "Student",
+          studentEmail: p?.email || "",
+          studentPhone: p?.usn || "N/A",
+          counsellor: a.counsellor_id,
+          date: a.date,
+          time: a.slot_time,
+          status: statusCap,
+          reason: a.reason,
+          notes: a.rejection_reason || undefined,
+        };
+      });
+
+      setItems(formatted);
+      setLoading(false);
+    }
+
+    fetchAllAppointments();
+  }, []);
 
   const filtered = useMemo(() => {
     return items.filter((a) => {
@@ -95,6 +141,7 @@ export default function AppointmentsPage() {
             <option>Approved</option>
             <option>Completed</option>
             <option>Cancelled</option>
+            <option>Rejected</option>
           </select>
           <input
             type="date"
@@ -137,32 +184,40 @@ export default function AppointmentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#f4ebd9]">
-              {filtered.map((a) => (
-                <tr key={a.id} className="hover:bg-[#fdfaf3]">
-                  <td className="px-5 py-3 font-mono text-xs text-[#6b4a3a]">{a.id}</td>
-                  <td className="px-5 py-3">
-                    <div className="font-medium text-[#3b1219]">{a.student}</div>
-                    <div className="text-xs text-[#8a6a55]">{a.studentEmail}</div>
-                  </td>
-                  <td className="px-5 py-3 text-[#3b1219]">{a.counsellor}</td>
-                  <td className="px-5 py-3 text-[#3b1219]">{a.date}</td>
-                  <td className="px-5 py-3 text-[#3b1219]">{a.time}</td>
-                  <td className="px-5 py-3">
-                    <span className={`text-[11px] px-2.5 py-1 rounded-full border ${statusStyles[a.status]}`}>
-                      {a.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <button
-                      onClick={() => setSelected(a)}
-                      className="text-xs font-medium text-[#6b1e2b] hover:underline"
-                    >
-                      View details
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-5 py-8 text-center text-sm text-[#8a6a55]">
+                    Loading live appointments...
                   </td>
                 </tr>
-              ))}
-              {filtered.length === 0 && (
+              ) : (
+                filtered.map((a) => (
+                  <tr key={a.id} className="hover:bg-[#fdfaf3]">
+                    <td className="px-5 py-3 font-mono text-xs text-[#6b4a3a]">{a.id}</td>
+                    <td className="px-5 py-3">
+                      <div className="font-medium text-[#3b1219]">{a.student}</div>
+                      <div className="text-xs text-[#8a6a55]">{a.studentEmail}</div>
+                    </td>
+                    <td className="px-5 py-3 text-[#3b1219]">{a.counsellor}</td>
+                    <td className="px-5 py-3 text-[#3b1219]">{a.date}</td>
+                    <td className="px-5 py-3 text-[#3b1219]">{a.time}</td>
+                    <td className="px-5 py-3">
+                      <span className={`text-[11px] px-2.5 py-1 rounded-full border ${statusStyles[a.status] || "bg-slate-100 text-slate-700"}`}>
+                        {a.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <button
+                        onClick={() => setSelected(a)}
+                        className="text-xs font-medium text-[#6b1e2b] hover:underline"
+                      >
+                        View details
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+              {!loading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-5 py-10 text-center text-sm text-[#8a6a55]">
                     No appointments match the current filters.
@@ -199,7 +254,7 @@ export default function AppointmentsPage() {
 
             <div className="px-6 py-5 space-y-5">
               <div className="flex items-center gap-2">
-                <span className={`text-[11px] px-2.5 py-1 rounded-full border ${statusStyles[selected.status]}`}>
+                <span className={`text-[11px] px-2.5 py-1 rounded-full border ${statusStyles[selected.status] || "bg-slate-100 text-slate-700"}`}>
                   {selected.status}
                 </span>
               </div>
@@ -211,7 +266,7 @@ export default function AppointmentsPage() {
                 <div className="space-y-2 text-sm text-[#3b1219]">
                   <div className="flex items-center gap-2"><User className="h-4 w-4 text-[#8a6a55]" /> {selected.student}</div>
                   <div className="flex items-center gap-2"><Mail className="h-4 w-4 text-[#8a6a55]" /> {selected.studentEmail}</div>
-                  <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-[#8a6a55]" /> {selected.studentPhone}</div>
+                  <div className="flex items-center gap-2"><Phone className="h-4 w-4 text-[#8a6a55]" /> USN: {selected.studentPhone}</div>
                 </div>
               </div>
 
@@ -234,20 +289,11 @@ export default function AppointmentsPage() {
                 {selected.notes && (
                   <>
                     <div className="mt-4 text-[11px] tracking-[0.18em] uppercase text-[#8a6a55] mb-2">
-                      Notes
+                      Rejection / Notes
                     </div>
                     <p className="text-sm text-[#6b4a3a]">{selected.notes}</p>
                   </>
                 )}
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button className="flex-1 rounded-full bg-[#6b1e2b] px-4 py-2 text-sm font-medium text-[#faf3e2] hover:bg-[#5a1723]">
-                  Approve
-                </button>
-                <button className="flex-1 rounded-full border border-[#e9dfd0] bg-white px-4 py-2 text-sm font-medium text-[#3b1219] hover:bg-[#faf3e2]">
-                  Reschedule
-                </button>
               </div>
             </div>
           </aside>

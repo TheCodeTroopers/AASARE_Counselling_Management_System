@@ -1,13 +1,13 @@
 import { cn } from '@/utils/cn';
 
 const toneMap = {
-  pending: 'bg-amber-50 text-amber-700 border-amber-200',
-  approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  rejected: 'bg-rose-50 text-rose-700 border-rose-200',
-  completed: 'bg-sky-50 text-sky-700 border-sky-200',
-  draft: 'bg-slate-100 text-slate-700 border-slate-200',
-  available: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  unavailable: 'bg-rose-50 text-rose-700 border-rose-200',
+  pending: 'bg-[#FFF2E8] text-[#C97A2B] border-[#F4A261]/40',
+  approved: 'bg-[#ECF8EE] text-[#4CAF50] border-[#4CAF50]/20',
+  rejected: 'bg-[#FDECE8] text-[#E76F51] border-[#E76F51]/20',
+  completed: 'bg-[#F8F3EE] text-[#6D214F] border-[#E8DDD5]',
+  draft: 'bg-[#F8F3EE] text-[#6E6E6E] border-[#E8DDD5]',
+  available: 'bg-[#ECF8EE] text-[#4CAF50] border-[#4CAF50]/20',
+  unavailable: 'bg-[#FDECE8] text-[#E76F51] border-[#E76F51]/20',
 };
 
 export function StatusBadge({ status }: { status: keyof typeof toneMap }) {
