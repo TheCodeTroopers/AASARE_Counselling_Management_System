@@ -11,6 +11,25 @@ type RecentItem = {
   status: string;
 };
 
+const quickActions = [
+  {
+    label: "Invite a new counsellor",
+    href: "/admin/counsellors",
+  },
+  {
+    label: "Publish weekly schedule",
+    href: "/admin/schedules",
+  },
+  {
+    label: "Export appointment report",
+    href: "/admin/appointments",
+  },
+  {
+    label: "Broadcast announcement",
+    href: "/admin/settings",
+  },
+] as const;
+
 const statusStyles: Record<string, string> = {
   Confirmed: "bg-[#e9f3ea] text-admin-success border-[#cfe3d1]",
   Approved: "bg-[#e9f3ea] text-admin-success border-[#cfe3d1]",
@@ -28,6 +47,50 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     async function loadAdminDashboard() {
+      const mockProfileStr = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+      const { data: authData } = await supabase.auth.getUser();
+
+      if (!authData?.user && mockProfileStr) {
+        // Load mock admin statistics
+        setCounsellorCount(9);
+        setSessionCount(24);
+        setPendingCount(3);
+        setRecent([
+          {
+            student: "Rahul Kumar",
+            counsellor: "Dr. Meera S. (CSE)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 10:30 AM`,
+            status: "Pending",
+          },
+          {
+            student: "Priya Sharma",
+            counsellor: "Prof. Deepika (Civil)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 02:00 PM`,
+            status: "Approved",
+          },
+          {
+            student: "Amit Hegde",
+            counsellor: "Mrs. Reshma Nayak (Maths)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 11:00 AM`,
+            status: "Approved",
+          },
+          {
+            student: "Sneha Rao",
+            counsellor: "Dr. Meera S. (CSE)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 09:30 AM`,
+            status: "Rejected",
+          },
+          {
+            student: "Vikram Sen",
+            counsellor: "Mr. Karthik V. (Mech)",
+            time: `${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}, 04:00 PM`,
+            status: "Pending",
+          },
+        ]);
+        setLoading(false);
+        return;
+      }
+
       // 1. Fetch counsellors count
       const { data: counsellors } = await supabase
         .from("profiles")
@@ -106,8 +169,9 @@ export default function AdminDashboardPage() {
               <CircleDot className="h-3 w-3 text-[#c9a24a]" />
               Private & Confidential
             </div>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl text-admin-text leading-tight">
-              Welcome back to your <span className="italic text-[#c9a24a]">AASARE</span> console.
+            <h2 className="mt-4 font-serif text-3xl md:text-4xl text-[#3b1219] leading-tight">
+              Welcome back to your{" "}
+              <span className="italic text-[#c9a24a]">AASARE</span> console.
             </h2>
             <p className="mt-2 text-sm text-[#6b4a3a] max-w-md">
               Manage counsellors, review schedules, and keep the cell running smoothly. Live
@@ -125,12 +189,16 @@ export default function AdminDashboardPage() {
             className="rounded-2xl border border-admin-border-dark bg-white p-5 shadow-sm shadow-admin-primary/[0.03]"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs tracking-wide uppercase text-admin-subtle">{label}</span>
-              <div className="grid h-8 w-8 place-items-center rounded-lg bg-admin-bg text-admin-primary">
+              <span className="text-xs tracking-wide uppercase text-[#a08a76]">
+                {label}
+              </span>
+              <div className="grid h-8 w-8 place-items-center rounded-lg bg-[#faf3e2] text-[#6b1e2b]">
                 <Icon className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 font-serif text-3xl text-admin-text">{value}</div>
+            <div className="mt-3 font-serif text-3xl text-[#3b1219]">
+              {value}
+            </div>
             <div className="mt-1 text-xs text-[#7a5a4a]">{delta}</div>
           </div>
         ))}

@@ -30,7 +30,7 @@ type AuthContextValue = {
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
+ 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -167,6 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAdmin: role === "admin",
     signOut: async () => {
       await supabase.auth.signOut();
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("mock_profile");
+      }
       setProfile(null);
       if (typeof window !== "undefined") {
         localStorage.removeItem("aasare_user_profile");
