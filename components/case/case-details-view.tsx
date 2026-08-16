@@ -115,7 +115,7 @@ export function CaseDetailsView({ caseId }: { caseId: string }) {
             </div>
             <div className="rounded-xl bg-secondary p-3">
               <span className="font-semibold text-slate-600 block text-xs">Contact / Email:</span>
-              <span className="font-medium text-slate-900 break-words">
+              <span className="font-medium text-slate-900 wrap-break-word">
                 {sheet.contactNumber || "N/A"} · {sheet.email || "N/A"}
               </span>
             </div>
