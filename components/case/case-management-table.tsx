@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { AlertTriangle, Eye, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, Eye, Plus, PlusCircle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { getAllCases, deleteCase, type CaseSheetRecord } from "@/services/case.service";
 import { SearchFilterBar } from "@/components/common/search-filter-bar";
@@ -142,20 +142,27 @@ export function CaseManagementTable() {
                     <StatusBadge status={item.status} />
                   </td>
                   <td className="p-3 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <div className="flex items-center justify-end gap-1.5">
+                      <Link
+                        href={`/case/${item.id}/followup`}
+                        className="inline-flex items-center gap-1 rounded-xl border border-primary/30 bg-secondary/80 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition cursor-pointer shadow-xs"
+                        title="Add Follow-up Session"
+                      >
+                        <PlusCircle className="h-3.5 w-3.5" /> Follow-up
+                      </Link>
                       <Link
                         href={`/case/${item.id}`}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
+                        className="inline-flex items-center gap-1 rounded-xl bg-primary px-2.5 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
                       >
-                        <Eye className="h-3.5 w-3.5" /> Open Sheet
+                        <Eye className="h-3.5 w-3.5" /> Open
                       </Link>
                       <button
                         type="button"
                         onClick={() => setPendingDelete(item)}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
+                        className="inline-flex items-center gap-1 rounded-xl border border-rose-200 bg-rose-50 px-2 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
                         title="Delete Case"
                       >
-                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </td>
@@ -192,18 +199,26 @@ export function CaseManagementTable() {
               </div>
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
                 <Link
-                  href={`/case/${item.id}`}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
+                  href={`/case/${item.id}/followup`}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-primary/30 bg-secondary/80 px-2.5 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition cursor-pointer shadow-xs"
                 >
-                  <Eye className="h-3.5 w-3.5" /> Open Sheet
+                  <PlusCircle className="h-3.5 w-3.5" /> Follow-up
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setPendingDelete(item)}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
-                >
-                  <Trash2 className="h-3.5 w-3.5" /> Delete
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    href={`/case/${item.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-primary-hover shadow-xs"
+                  >
+                    <Eye className="h-3.5 w-3.5" /> Open Sheet
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setPendingDelete(item)}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition cursor-pointer shadow-xs"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

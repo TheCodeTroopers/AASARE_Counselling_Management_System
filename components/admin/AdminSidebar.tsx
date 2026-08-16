@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 import {
   LayoutDashboard,
@@ -24,6 +26,8 @@ const nav: Array<{ label: string; href: string; icon: typeof LayoutDashboard }> 
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut } = useAuth();
+
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-admin-border bg-[#fbf6ee] print:hidden">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-admin-border">
@@ -74,10 +78,12 @@ export default function AdminSidebar() {
             Administrative actions are logged. Handle counsellor and student data with care.
           </p>
           <button
-            onClick={() => {
-              router.push("/login");
+            onClick={async () => {
+              await signOut();
+              toast.success("Signed out successfully");
+              router.push("/auth");
             }}
-            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs font-medium text-[#4a2b30] hover:bg-admin-bg"
+            className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-admin-border bg-white px-3 py-1.5 text-xs font-medium text-[#4a2b30] hover:bg-admin-bg cursor-pointer"
           >
             <LogOut className="h-3.5 w-3.5" />
             Sign out

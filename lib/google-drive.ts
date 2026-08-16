@@ -139,10 +139,31 @@ export async function uploadFileToDriveFolder(
   isAppData: boolean = false,
 ): Promise<DriveFileInfo | null> {
   try {
-    const metadata = {
-      name: fileName,
-      parents: isAppData ? ["appDataFolder"] : [folderId],
-    };
+    // Check if file already exists in target location to overwrite instead of creating duplicates
+    let existingFileId: string | null = null;
+    try {
+      const q = isAppData
+        ? `name = '${fileName}' and 'appDataFolder' in parents and trashed = false`
+        : `name = '${fileName}' and '${folderId}' in parents and trashed = false`;
+      const spacesParam = isAppData ? "&spaces=appDataFolder" : "";
+      const searchRes = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id)${spacesParam}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } },
+      );
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.files && searchData.files.length > 0) {
+          existingFileId = searchData.files[0].id;
+        }
+      }
+    } catch {
+      // Ignore search error and fallback to POST
+    }
+
+    const metadata: Record<string, any> = { name: fileName };
+    if (!existingFileId) {
+      metadata.parents = isAppData ? ["appDataFolder"] : [folderId];
+    }
 
     const boundary = "---------------------------" + Date.now().toString(16);
     const delimiter = "\r\n--" + boundary + "\r\n";
@@ -160,17 +181,19 @@ export async function uploadFileToDriveFolder(
       Buffer.from(closeDelimiter),
     ]);
 
-    const res = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType,createdTime,webViewLink",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": `multipart/related; boundary=${boundary}`,
-        },
-        body,
+    const endpoint = existingFileId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${existingFileId}?uploadType=multipart&fields=id,name,size,mimeType,createdTime,webViewLink`
+      : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,size,mimeType,createdTime,webViewLink";
+    const method = existingFileId ? "PATCH" : "POST";
+
+    const res = await fetch(endpoint, {
+      method,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": `multipart/related; boundary=${boundary}`,
       },
-    );
+      body,
+    });
 
     if (res.ok) {
       const data = await res.json();

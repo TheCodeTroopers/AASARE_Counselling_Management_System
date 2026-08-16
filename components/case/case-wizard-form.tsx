@@ -201,6 +201,10 @@ export function CaseWizardForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (step < steps.length - 1) {
+      setStep((s) => Math.min(s + 1, steps.length - 1));
+      return;
+    }
     submitCase();
   };
 
@@ -243,9 +247,9 @@ export function CaseWizardForm() {
       <form
         onSubmit={handleSubmit}
         onKeyDown={(e) => {
-          if (e.key === "Enter" && e.target instanceof HTMLButtonElement) return;
-          if (e.key === "Enter" && e.target instanceof HTMLTextAreaElement) return;
-          if (e.key === "Enter") e.preventDefault();
+          if (e.key === "Enter" && !(e.target instanceof HTMLTextAreaElement)) {
+            e.preventDefault();
+          }
         }}
       >
         <SectionCard
