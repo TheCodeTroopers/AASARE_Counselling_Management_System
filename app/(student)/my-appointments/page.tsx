@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Link from "next/link";
 import { CalendarClock, MessageSquare, XCircle } from "lucide-react";
@@ -15,11 +15,21 @@ import {
   type Appointment,
 } from "@/lib/appointments";
 import { getCounsellor } from "@/lib/counsellors";
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/auth");
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
     let mounted = true;
@@ -59,7 +69,9 @@ export default function AppointmentsPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-5 py-14 md:px-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Your sessions</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">
+            Your sessions
+          </p>
           <h1 className="mt-2 font-display text-5xl text-primary md:text-6xl">My appointments</h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
             Follow your requests as they move through pending, approved, completed, or cancelled.
@@ -137,7 +149,9 @@ function AppointmentCard({
   if (!c) return null;
   const canCancel = a.status === "pending" || a.status === "approved";
   const dateLabel = new Date(a.date).toLocaleDateString(undefined, {
-    weekday: "long", month: "long", day: "numeric",
+    weekday: "long",
+    month: "long",
+    day: "numeric",
   });
   return (
     <article

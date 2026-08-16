@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Users,
-  CalendarCheck2,
-  Clock3,
-  TrendingUp,
-  ArrowUpRight,
-  CircleDot,
-} from "lucide-react";
+import { Users, CalendarCheck2, Clock3, TrendingUp, ArrowUpRight, CircleDot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 type RecentItem = {
@@ -38,11 +31,11 @@ const quickActions = [
 ] as const;
 
 const statusStyles: Record<string, string> = {
-  Confirmed: "bg-[#e9f3ea] text-[#2f6b3a] border-[#cfe3d1]",
-  Approved: "bg-[#e9f3ea] text-[#2f6b3a] border-[#cfe3d1]",
-  Pending: "bg-[#faf3e2] text-[#8a6a1f] border-[#ecdcb0]",
-  Rejected: "bg-[#f5e8ea] text-[#6b1e2b] border-[#e9c9ce]",
-  Cancelled: "bg-[#f5e8ea] text-[#6b1e2b] border-[#e9c9ce]",
+  Confirmed: "bg-[#e9f3ea] text-admin-success border-[#cfe3d1]",
+  Approved: "bg-[#e9f3ea] text-admin-success border-[#cfe3d1]",
+  Pending: "bg-admin-bg text-[#8a6a1f] border-[#ecdcb0]",
+  Rejected: "bg-[#f5e8ea] text-admin-primary border-[#e9c9ce]",
+  Cancelled: "bg-[#f5e8ea] text-admin-primary border-[#e9c9ce]",
 };
 
 export default function AdminDashboardPage() {
@@ -145,16 +138,31 @@ export default function AdminDashboardPage() {
   }, []);
 
   const stats = [
-    { label: "Active Counsellors", value: String(counsellorCount), delta: "Official Faculty", icon: Users },
-    { label: "Total Sessions", value: String(sessionCount), delta: "All time", icon: CalendarCheck2 },
-    { label: "Pending Requests", value: String(pendingCount), delta: "Awaiting approval", icon: Clock3 },
+    {
+      label: "Active Counsellors",
+      value: String(counsellorCount),
+      delta: "Official Faculty",
+      icon: Users,
+    },
+    {
+      label: "Total Sessions",
+      value: String(sessionCount),
+      delta: "All time",
+      icon: CalendarCheck2,
+    },
+    {
+      label: "Pending Requests",
+      value: String(pendingCount),
+      delta: "Awaiting approval",
+      icon: Clock3,
+    },
     { label: "System Health", value: "100%", delta: "Supabase & API Active", icon: TrendingUp },
   ];
 
   return (
     <>
       {/* Hero card */}
-      <section className="rounded-3xl border border-[#ece1cd] bg-gradient-to-br from-[#fbf1de] via-[#faeede] to-[#f7dfd9] p-6 md:p-8 shadow-sm">
+      <section className="rounded-3xl border border-admin-border-dark bg-gradient-to-br from-[#fbf1de] via-[#faeede] to-[#f7dfd9] p-6 md:p-8 shadow-sm">
         <div className="flex flex-wrap items-start gap-6 justify-between">
           <div className="max-w-xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#e6cfa8] bg-white/70 px-3 py-1 text-[11px] tracking-[0.18em] uppercase text-[#8a6a1f]">
@@ -166,8 +174,8 @@ export default function AdminDashboardPage() {
               <span className="italic text-[#c9a24a]">AASARE</span> console.
             </h2>
             <p className="mt-2 text-sm text-[#6b4a3a] max-w-md">
-              Manage counsellors, review schedules, and keep the cell running smoothly.
-              Live database synchronization is active.
+              Manage counsellors, review schedules, and keep the cell running smoothly. Live
+              database synchronization is active.
             </p>
           </div>
         </div>
@@ -178,7 +186,7 @@ export default function AdminDashboardPage() {
         {stats.map(({ label, value, delta, icon: Icon }) => (
           <div
             key={label}
-            className="rounded-2xl border border-[#ece1cd] bg-white p-5 shadow-sm shadow-[#6b1e2b]/[0.03]"
+            className="rounded-2xl border border-admin-border-dark bg-white p-5 shadow-sm shadow-admin-primary/[0.03]"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs tracking-wide uppercase text-[#a08a76]">
@@ -198,30 +206,36 @@ export default function AdminDashboardPage() {
 
       {/* Recent appointments */}
       <section className="mt-6 grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <div className="xl:col-span-2 rounded-2xl border border-[#ece1cd] bg-white shadow-sm">
+        <div className="xl:col-span-2 rounded-2xl border border-admin-border-dark bg-white shadow-sm">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#f0e5d3]">
             <div>
-              <h3 className="font-serif text-lg text-[#3b1219]">Recent Appointments</h3>
-              <p className="text-xs text-[#8a6a55]">Latest scheduled sessions from live database</p>
+              <h3 className="font-serif text-lg text-admin-text">Recent Appointments</h3>
+              <p className="text-xs text-admin-muted">
+                Latest scheduled sessions from live database
+              </p>
             </div>
           </div>
           <div className="divide-y divide-[#f4ebd9]">
             {loading ? (
-              <div className="px-5 py-8 text-center text-sm text-[#8a6a55]">Loading live appointments...</div>
+              <div className="px-5 py-8 text-center text-sm text-admin-muted">
+                Loading live appointments...
+              </div>
             ) : recent.length === 0 ? (
-              <div className="px-5 py-8 text-center text-sm text-[#8a6a55]">No appointments found.</div>
+              <div className="px-5 py-8 text-center text-sm text-admin-muted">
+                No appointments found.
+              </div>
             ) : (
               recent.map((r) => (
                 <div key={r.student + r.time} className="flex items-center gap-4 px-5 py-4">
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-[#faf3e2] text-[#6b1e2b] text-xs font-semibold">
+                  <div className="grid h-9 w-9 place-items-center rounded-full bg-admin-bg text-admin-primary text-xs font-semibold">
                     {r.student
                       .split(" ")
                       .map((s) => s[0])
                       .join("")}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-[#3b1219] truncate">{r.student}</div>
-                    <div className="text-xs text-[#8a6a55] truncate">with {r.counsellor}</div>
+                    <div className="text-sm font-medium text-admin-text truncate">{r.student}</div>
+                    <div className="text-xs text-admin-muted truncate">with {r.counsellor}</div>
                   </div>
                   <div className="text-xs text-[#6b4a3a] hidden sm:block">{r.time}</div>
                   <span
@@ -235,18 +249,21 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[#ece1cd] bg-white shadow-sm p-5">
-          <h3 className="font-serif text-lg text-[#3b1219]">System Overview</h3>
-          <p className="text-xs text-[#8a6a55]">Live database status</p>
+        <div className="rounded-2xl border border-admin-border-dark bg-white shadow-sm p-5">
+          <h3 className="font-serif text-lg text-admin-text">System Overview</h3>
+          <p className="text-xs text-admin-muted">Live database status</p>
           <div className="mt-4 space-y-2">
-            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-[#3b1219]">
-              <span className="font-semibold text-[#6b1e2b]">Counsellor Accounts:</span> {counsellorCount} active
+            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-admin-text">
+              <span className="font-semibold text-admin-primary">Counsellor Accounts:</span>{" "}
+              {counsellorCount} active
             </div>
-            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-[#3b1219]">
-              <span className="font-semibold text-[#6b1e2b]">Appointments Logged:</span> {sessionCount}
+            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-admin-text">
+              <span className="font-semibold text-admin-primary">Appointments Logged:</span>{" "}
+              {sessionCount}
             </div>
-            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-[#3b1219]">
-              <span className="font-semibold text-[#6b1e2b]">Pending Review:</span> {pendingCount}
+            <div className="rounded-xl border border-[#efe4d1] bg-[#fdfaf3] p-3 text-sm text-admin-text">
+              <span className="font-semibold text-admin-primary">Pending Review:</span>{" "}
+              {pendingCount}
             </div>
           </div>
         </div>

@@ -11,7 +11,11 @@ export const Route = createFileRoute("/counsellors/")({
   head: () => ({
     meta: [
       { title: "Counsellor Directory — AASARE" },
-      { name: "description", content: "Browse trained faculty counsellors at SMVITM. Filter by department and see live availability." },
+      {
+        name: "description",
+        content:
+          "Browse trained faculty counsellors at SMVITM. Filter by department and see live availability.",
+      },
     ],
   }),
 });
@@ -48,8 +52,8 @@ function CounsellorsIndex() {
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-gold">Directory</p>
           <h1 className="font-display text-5xl text-primary md:text-6xl">Meet our counsellors</h1>
           <p className="max-w-2xl text-base text-muted-foreground">
-            Nine faculty counsellors from across SMVITM departments. Pick anyone
-            you feel comfortable with — sessions are entirely private.
+            Nine faculty counsellors from across SMVITM departments. Pick anyone you feel
+            comfortable with — sessions are entirely private.
           </p>
         </div>
 
@@ -61,7 +65,7 @@ function CounsellorsIndex() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search by name, department, or specialty…"
-              className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
             />
           </div>
           <div className="flex items-center gap-3">
@@ -69,10 +73,12 @@ function CounsellorsIndex() {
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value)}
-              className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary"
+              className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
             >
               {departments.map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d}>
+                  {d}
+                </option>
               ))}
             </select>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
@@ -108,7 +114,10 @@ function CounsellorsIndex() {
 
               <div className="mt-4 flex flex-wrap gap-1.5">
                 {c.specialties.map((s) => (
-                  <span key={s} className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground">
+                  <span
+                    key={s}
+                    className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground"
+                  >
                     {s}
                   </span>
                 ))}
@@ -129,7 +138,9 @@ function CounsellorsIndex() {
                   />
                   {c.available ? "Accepting requests" : "Currently unavailable"}
                 </span>
-                <span className="font-medium text-primary opacity-0 transition group-hover:opacity-100">View →</span>
+                <span className="font-medium text-primary opacity-0 transition group-hover:opacity-100">
+                  View →
+                </span>
               </div>
             </Link>
           ))}

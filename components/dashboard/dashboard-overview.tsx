@@ -1,12 +1,22 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { CalendarCheck2, Clock3, FileText, ShieldCheck, Users } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, CartesianGrid, XAxis, YAxis, Tooltip, BarChart, Bar } from 'recharts';
-import { getDashboardMock } from '@/services/dashboard.service';
-import { StatCard } from '@/components/common/stat-card';
-import { SectionCard } from '@/components/common/section-card';
-import { LoadingSkeleton } from '@/components/common/loading-skeleton';
+import { useQuery } from "@tanstack/react-query";
+import { CalendarCheck2, Clock3, FileText, ShieldCheck, Users } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  BarChart,
+  Bar,
+} from "recharts";
+import { getDashboardMock } from "@/services/dashboard.service";
+import { StatCard } from "@/components/common/stat-card";
+import { SectionCard } from "@/components/common/section-card";
+import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
 const statIcons = {
   primary: CalendarCheck2,
@@ -18,12 +28,17 @@ const statIcons = {
 
 export function DashboardOverview() {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ["dashboard"],
     queryFn: getDashboardMock,
   });
 
   if (isLoading) return <LoadingSkeleton rows={5} />;
-  if (isError || !data?.data) return <div className="rounded-[20px] border border-[#E8DDD5] bg-white p-5 text-sm text-[#E76F51] shadow-card">Unable to load dashboard.</div>;
+  if (isError || !data?.data)
+    return (
+      <div className="rounded-[20px] border border-border bg-white p-5 text-sm text-danger shadow-card">
+        Unable to load dashboard.
+      </div>
+    );
 
   const { stats, chartData, activityFeed } = data.data;
 
@@ -35,14 +50,28 @@ export function DashboardOverview() {
             key={stat.label}
             label={stat.label}
             value={stat.value}
-            accent={stat.tone === 'primary' ? 'bg-[#F8F3EE] text-[#6D214F]' : stat.tone === 'secondary' ? 'bg-[#F8F3EE] text-[#C89B7B]' : stat.tone === 'warning' ? 'bg-[#FFF2E8] text-[#F4A261]' : stat.tone === 'success' ? 'bg-[#ECF8EE] text-[#4CAF50]' : 'bg-[#FDECE8] text-[#E76F51]'}
+            accent={
+              stat.tone === "primary"
+                ? "bg-secondary text-primary"
+                : stat.tone === "secondary"
+                  ? "bg-secondary text-accent"
+                  : stat.tone === "warning"
+                    ? "bg-warning-light text-warning"
+                    : stat.tone === "success"
+                      ? "bg-success-light text-success"
+                      : "bg-danger-light text-danger"
+            }
             icon={statIcons[stat.tone as keyof typeof statIcons]}
           />
         ))}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-3">
-        <SectionCard title="Appointment Trend" subtitle="Weekly appointments and counselling load" className="xl:col-span-2">
+        <SectionCard
+          title="Appointment Trend"
+          subtitle="Weekly appointments and counselling load"
+          className="xl:col-span-2"
+        >
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -56,7 +85,13 @@ export function DashboardOverview() {
                 <XAxis dataKey="name" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} />
                 <Tooltip />
-                <Area type="monotone" dataKey="appointments" stroke="#6D214F" fill="url(#colorAppointments)" strokeWidth={3} />
+                <Area
+                  type="monotone"
+                  dataKey="appointments"
+                  stroke="#6D214F"
+                  fill="url(#colorAppointments)"
+                  strokeWidth={3}
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -81,7 +116,10 @@ export function DashboardOverview() {
         <SectionCard title="Recent Activities" subtitle="Latest updates" className="lg:col-span-2">
           <div className="space-y-3">
             {activityFeed.map((activity) => (
-              <div key={activity.id} className="rounded-2xl border border-[#E8DDD5] bg-[#F8F3EE] px-3 py-3 text-sm text-[#2F2F2F]">
+              <div
+                key={activity.id}
+                className="rounded-2xl border border-border bg-secondary px-3 py-3 text-sm text-text"
+              >
                 <div className="flex items-center justify-between gap-3">
                   <span>{activity.title}</span>
                   <span className="text-xs text-slate-500">{activity.meta}</span>
@@ -92,10 +130,10 @@ export function DashboardOverview() {
         </SectionCard>
 
         <SectionCard title="Current Availability" subtitle="Live schedule readiness">
-          <div className="rounded-2xl bg-[#ECF8EE] p-4 text-sm font-medium text-[#4CAF50]">
+          <div className="rounded-2xl bg-success-light p-4 text-sm font-medium text-success">
             Available for new appointments
           </div>
-          <div className="mt-4 rounded-2xl border border-[#E8DDD5] bg-white p-4">
+          <div className="mt-4 rounded-2xl border border-border bg-white p-4">
             <p className="text-sm text-slate-500">Today’s slot usage</p>
             <p className="mt-2 text-2xl font-semibold">68%</p>
           </div>

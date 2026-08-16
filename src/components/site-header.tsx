@@ -14,9 +14,9 @@ export function SiteHeader() {
   const nav = [
     { to: "/", label: "Home" },
     { to: "/counsellors", label: "Counsellors" },
-    ...(role === "student" ? [{ to: "/appointments", label: "My Appointments" }] : []),
-    ...(isCounsellor ? [{ to: "/appointments", label: "Dashboard Sessions" }] : []),
-    ...(isAdmin ? [{ to: "/appointments", label: "All Schedules" }] : []),
+    ...(user && role === "student" ? [{ to: "/appointments", label: "My Appointments" }] : []),
+    ...(user && isCounsellor ? [{ to: "/appointments", label: "Dashboard Sessions" }] : []),
+    ...(user && isAdmin ? [{ to: "/appointments", label: "All Schedules" }] : []),
     { to: "/about", label: "About AASARE" },
   ];
 
@@ -37,19 +37,27 @@ export function SiteHeader() {
     : "";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl print:hidden">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
         <Link to="/" className="flex items-center gap-3">
           <img
-            src={logo}
+            src={typeof logo === "string" ? logo : logo.src}
             alt="SMVITM"
             className="h-11 w-11 object-contain"
           />
           <div className="flex flex-col leading-tight">
             <span className="font-display text-xl font-semibold tracking-tight text-primary flex items-center gap-1.5">
               AASARE
-              {isAdmin && <span className="rounded bg-rose-500/10 text-rose-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-rose-500/20">ADMIN</span>}
-              {isCounsellor && <span className="rounded bg-amber-500/10 text-amber-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-amber-500/20">COUNSELLOR</span>}
+              {isAdmin && (
+                <span className="rounded bg-rose-500/10 text-rose-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-rose-500/20">
+                  ADMIN
+                </span>
+              )}
+              {isCounsellor && (
+                <span className="rounded bg-amber-500/10 text-amber-600 text-[10px] px-1.5 py-0.5 font-sans font-semibold border border-amber-500/20">
+                  COUNSELLOR
+                </span>
+              )}
             </span>
             <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
               Institutional Counselling Cell · SMVITM
@@ -59,19 +67,14 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((item) => {
-            const active =
-              item.to === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.to);
+            const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
                 to={item.to}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -91,8 +94,10 @@ export function SiteHeader() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
                   {initials || "·"}
                 </span>
-                <span className="max-w-[9rem] truncate">{displayName.split(" ")[0] || "You"}</span>
-                <span className="text-[10px] uppercase text-muted-foreground font-semibold">({role})</span>
+                <span className="max-w-36 truncate">{displayName.split(" ")[0] || "You"}</span>
+                <span className="text-[10px] uppercase text-muted-foreground font-semibold">
+                  ({role})
+                </span>
               </Link>
               <button
                 onClick={async () => {

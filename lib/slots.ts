@@ -38,10 +38,7 @@ export async function upsertSlot(
 
 // ─── Counsellor: delete a slot by id ─────────────────────────────────────────
 export async function deleteSlot(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("counsellor_slots")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("counsellor_slots").delete().eq("id", id);
   if (error) throw error;
 }
 
@@ -106,4 +103,3 @@ export async function fetchUnavailableDates(counsellorId: string): Promise<strin
   if (error) throw error;
   return (data ?? []).map((r: { available_date: string }) => r.available_date);
 }
-

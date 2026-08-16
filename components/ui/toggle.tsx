@@ -27,7 +27,8 @@ const toggleVariants = cva(
 );
 
 interface ToggleProps
-  extends React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root>,
+  extends
+    React.ComponentPropsWithoutRef<typeof TogglePrimitive.Root>,
     VariantProps<typeof toggleVariants> {
   className?: string;
 }

@@ -1,5 +1,5 @@
-import { api } from './api-client';
+import { api } from "./api-client";
 
 export async function getNotifications() {
-  return api.get<Array<{ id: string; title: string; meta: string }>>('/notifications');
+  return api.get<Array<{ id: string; title: string; meta: string }>>("/notifications");
 }

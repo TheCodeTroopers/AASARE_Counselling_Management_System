@@ -3,7 +3,7 @@ export interface CounsellingCase {
   studentName: string;
   createdDate: string;
   lastUpdated: string;
-  status: 'draft' | 'completed';
+  status: "draft" | "completed";
   department: string;
   semester: string;
 }

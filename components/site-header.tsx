@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
@@ -8,26 +9,26 @@ import { cn } from "@/utils/cn";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
-const nav = [
-  { href: "/", label: "Home" },
-  { href: "/counsellors", label: "Counsellors" },
-  { href: "/my-appointments", label: "My Appointments" },
-  { href: "/about", label: "About AASARE" },
-];
-
 export function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const { user, profile, role, isCounsellor, isAdmin, signOut } = useAuth();
-  
+
+  const nav: { href: Route; label: string }[] = [
+    { href: "/", label: "Home" },
+    { href: "/counsellors", label: "Counsellors" },
+    ...(user ? [{ href: "/my-appointments" as Route, label: "My Appointments" }] : []),
+    { href: "/about", label: "About AASARE" },
+  ];
+
   const displayName =
     profile?.full_name ||
     (user?.user_metadata?.full_name as string | undefined) ||
     (user?.user_metadata?.name as string | undefined) ||
     user?.email ||
     "";
-    
+
   const initials = displayName
     ? displayName
         .split(/[\s@.]+/)
@@ -38,14 +39,10 @@ export function SiteHeader() {
     : "";
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/85 backdrop-blur-xl print:hidden">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5 md:px-8">
         <Link href="/" className="flex items-center gap-3">
-          <Image
-            src={logo}
-            alt="SMVITM"
-            className="h-11 w-11 object-contain rounded-full"
-          />
+          <Image src={logo} alt="SMVITM" className="h-11 w-11 object-contain rounded-full" />
           <div className="flex flex-col leading-tight">
             <span className="font-display text-xl font-semibold tracking-tight text-primary">
               AASARE
@@ -58,19 +55,14 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {nav.map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname?.startsWith(item.href);
+            const active = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
             return (
               <Link
                 key={item.href}
-                href={item.href as any}
+                href={item.href}
                 className={cn(
                   "relative rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {item.label}
@@ -83,14 +75,16 @@ export function SiteHeader() {
           {user ? (
             <div className="ml-3 flex items-center gap-2">
               <Link
-                href={isAdmin ? "/admin/dashboard" : isCounsellor ? "/dashboard" : "/my-appointments"}
+                href={
+                  isAdmin ? "/admin/dashboard" : isCounsellor ? "/dashboard" : "/my-appointments"
+                }
                 className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/80"
                 title={displayName}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
                   {initials || "·"}
                 </span>
-                <span className="max-w-[9rem] truncate">{displayName.split(" ")[0] || "You"}</span>
+                <span className="max-w-36 truncate">{displayName.split(" ")[0] || "You"}</span>
                 {(isCounsellor || isAdmin) && (
                   <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">
                     {role}
@@ -134,7 +128,7 @@ export function SiteHeader() {
             {nav.map((item) => (
               <Link
                 key={item.href}
-                href={item.href as any}
+                href={item.href}
                 onClick={() => setOpen(false)}
                 className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-secondary"
               >

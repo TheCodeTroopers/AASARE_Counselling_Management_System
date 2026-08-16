@@ -9,7 +9,7 @@ Specification (SRS).
 ## Current Progress
 
 | Module                   | Status          |
-|--------------------------|-----------------|
+| ------------------------ | --------------- |
 | Authentication           | Partial         |
 | Student Panel            | Mostly Complete |
 | Appointment Booking      | Mostly Complete |

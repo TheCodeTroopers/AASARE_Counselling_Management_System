@@ -7,17 +7,17 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function SettingsPage() {
   const [institute, setInstitute] = useState({
-  name: "AASARE – Institutional Counselling Cell (ICC)",
-  address:
-    "Shri Madhwa Vadiraja Institute of Technology and Management (SMVITM), Bantakal, Udupi, Karnataka",
-  email: "admin@smvitm.edu.in",
-  phone: "+91 XXXXX XXXXX",
-});
+    name: "AASARE – Institutional Counselling Cell (ICC)",
+    address:
+      "Shri Madhwa Vadiraja Institute of Technology and Management (SMVITM), Bantakal, Udupi, Karnataka",
+    email: "admin@smvitm.edu.in",
+    phone: "+91 XXXXX XXXXX",
+  });
   const [profile, setProfile] = useState({
-  name: "Dr. Deepika B V",
-  email: "deepika.bv@smvitm.edu.in",
-  role: "Counselling Cell Coordinator",
-});
+    name: "Dr. Deepika B V",
+    email: "deepika.bv@smvitm.edu.in",
+    role: "Counselling Cell Coordinator",
+  });
   const [notifications, setNotifications] = useState({
     emailNew: true,
     emailReminders: true,
@@ -49,14 +49,14 @@ export default function SettingsPage() {
     subtitle: string;
     children: React.ReactNode;
   }) => (
-    <section className="rounded-2xl border border-[#ece1cd] bg-white shadow-sm">
+    <section className="rounded-2xl border border-admin-border-dark bg-white shadow-sm">
       <div className="flex items-start gap-3 px-5 py-4 border-b border-[#f0e5d3]">
-        <div className="grid h-9 w-9 place-items-center rounded-lg bg-[#faf3e2] text-[#6b1e2b]">
+        <div className="grid h-9 w-9 place-items-center rounded-lg bg-admin-bg text-admin-primary">
           <Icon className="h-4 w-4" />
         </div>
         <div>
-          <h3 className="font-serif text-lg text-[#3b1219] leading-tight">{title}</h3>
-          <p className="text-xs text-[#8a6a55]">{subtitle}</p>
+          <h3 className="font-serif text-lg text-admin-text leading-tight">{title}</h3>
+          <p className="text-xs text-admin-muted">{subtitle}</p>
         </div>
       </div>
       <div className="p-5">{children}</div>
@@ -64,8 +64,8 @@ export default function SettingsPage() {
   );
 
   const inputCls =
-    "w-full rounded-xl border border-[#e9dfd0] bg-[#fdfaf3] px-3 py-2.5 text-sm text-[#3b1219] placeholder:text-[#a08a76] focus:outline-none focus:border-[#c9a24a]";
-  const labelCls = "block text-xs font-medium tracking-wide uppercase text-[#8a6a55] mb-1.5";
+    "w-full rounded-xl border border-admin-border bg-[#fdfaf3] px-3 py-2.5 text-sm text-admin-text placeholder:text-admin-subtle focus:outline-none focus:border-[#c9a24a]";
+  const labelCls = "block text-xs font-medium tracking-wide uppercase text-admin-muted mb-1.5";
 
   return (
     <>
@@ -74,20 +74,36 @@ export default function SettingsPage() {
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className={labelCls}>Institute name</label>
-              <input className={inputCls} value={institute.name} onChange={(e) => setInstitute({ ...institute, name: e.target.value })} />
+              <input
+                className={inputCls}
+                value={institute.name}
+                onChange={(e) => setInstitute({ ...institute, name: e.target.value })}
+              />
             </div>
             <div>
               <label className={labelCls}>Address</label>
-              <input className={inputCls} value={institute.address} onChange={(e) => setInstitute({ ...institute, address: e.target.value })} />
+              <input
+                className={inputCls}
+                value={institute.address}
+                onChange={(e) => setInstitute({ ...institute, address: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Email</label>
-                <input className={inputCls} value={institute.email} onChange={(e) => setInstitute({ ...institute, email: e.target.value })} />
+                <input
+                  className={inputCls}
+                  value={institute.email}
+                  onChange={(e) => setInstitute({ ...institute, email: e.target.value })}
+                />
               </div>
               <div>
                 <label className={labelCls}>Phone</label>
-                <input className={inputCls} value={institute.phone} onChange={(e) => setInstitute({ ...institute, phone: e.target.value })} />
+                <input
+                  className={inputCls}
+                  value={institute.phone}
+                  onChange={(e) => setInstitute({ ...institute, phone: e.target.value })}
+                />
               </div>
             </div>
           </div>
@@ -95,26 +111,42 @@ export default function SettingsPage() {
 
         <Card icon={UserCircle2} title="Admin Profile" subtitle="Your account details">
           <div className="flex items-center gap-4 mb-5">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-[#6b1e2b] text-[#f5e9c8] font-serif text-lg">
-              {profile.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-admin-primary text-[#f5e9c8] font-serif text-lg">
+              {profile.name
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)}
             </div>
-            <button className="rounded-full border border-[#e9dfd0] bg-white px-3 py-1.5 text-xs font-medium text-[#3b1219] hover:bg-[#faf3e2]">
+            <button className="rounded-full border border-admin-border bg-white px-3 py-1.5 text-xs font-medium text-admin-text hover:bg-admin-bg">
               Change avatar
             </button>
           </div>
           <div className="grid grid-cols-1 gap-4">
             <div>
               <label className={labelCls}>Full name</label>
-              <input className={inputCls} value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} />
+              <input
+                className={inputCls}
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className={labelCls}>Email</label>
-                <input className={inputCls} value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} />
+                <input
+                  className={inputCls}
+                  value={profile.email}
+                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                />
               </div>
               <div>
                 <label className={labelCls}>Role</label>
-                <input className={inputCls} value={profile.role} onChange={(e) => setProfile({ ...profile, role: e.target.value })} />
+                <input
+                  className={inputCls}
+                  value={profile.role}
+                  onChange={(e) => setProfile({ ...profile, role: e.target.value })}
+                />
               </div>
             </div>
           </div>
@@ -135,12 +167,12 @@ export default function SettingsPage() {
                   key={row.key}
                   className="flex items-center justify-between gap-4 rounded-xl border border-[#efe4d1] bg-[#fdfaf3] px-4 py-3 cursor-pointer"
                 >
-                  <span className="text-sm text-[#3b1219]">{row.label}</span>
+                  <span className="text-sm text-admin-text">{row.label}</span>
                   <button
                     type="button"
                     onClick={() => setNotifications({ ...notifications, [k]: !on })}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                      on ? "bg-[#6b1e2b]" : "bg-[#e9dfd0]"
+                      on ? "bg-admin-primary" : "bg-admin-border"
                     }`}
                   >
                     <span
@@ -159,19 +191,43 @@ export default function SettingsPage() {
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div>
               <label className={labelCls}>Session duration (min)</label>
-              <input type="number" min={15} step={5} className={inputCls} value={sessionDuration} onChange={(e) => setSessionDuration(Number(e.target.value))} />
+              <input
+                type="number"
+                min={15}
+                step={5}
+                className={inputCls}
+                value={sessionDuration}
+                onChange={(e) => setSessionDuration(Number(e.target.value))}
+              />
             </div>
             <div>
               <label className={labelCls}>Buffer between (min)</label>
-              <input type="number" min={0} step={5} className={inputCls} value={bufferMinutes} onChange={(e) => setBufferMinutes(Number(e.target.value))} />
+              <input
+                type="number"
+                min={0}
+                step={5}
+                className={inputCls}
+                value={bufferMinutes}
+                onChange={(e) => setBufferMinutes(Number(e.target.value))}
+              />
             </div>
             <div>
               <label className={labelCls}>Working hours start</label>
-              <input type="time" className={inputCls} value={hours.start} onChange={(e) => setHours({ ...hours, start: e.target.value })} />
+              <input
+                type="time"
+                className={inputCls}
+                value={hours.start}
+                onChange={(e) => setHours({ ...hours, start: e.target.value })}
+              />
             </div>
             <div>
               <label className={labelCls}>Working hours end</label>
-              <input type="time" className={inputCls} value={hours.end} onChange={(e) => setHours({ ...hours, end: e.target.value })} />
+              <input
+                type="time"
+                className={inputCls}
+                value={hours.end}
+                onChange={(e) => setHours({ ...hours, end: e.target.value })}
+              />
             </div>
           </div>
           <div>
@@ -186,8 +242,8 @@ export default function SettingsPage() {
                     onClick={() => toggleDay(d)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                       on
-                        ? "bg-[#6b1e2b] text-[#faf3e2] border-[#6b1e2b]"
-                        : "bg-white text-[#3b1219] border-[#e9dfd0] hover:bg-[#faf3e2]"
+                        ? "bg-admin-primary text-admin-bg border-admin-primary"
+                        : "bg-white text-admin-text border-admin-border hover:bg-admin-bg"
                     }`}
                   >
                     {d}
@@ -201,15 +257,15 @@ export default function SettingsPage() {
 
       {/* Sticky save bar */}
       <div className="sticky bottom-4 mt-6 flex justify-end">
-        <div className="flex items-center gap-3 rounded-full border border-[#ece1cd] bg-white/95 backdrop-blur px-3 py-2 shadow-lg shadow-[#6b1e2b]/10">
+        <div className="flex items-center gap-3 rounded-full border border-admin-border-dark bg-white/95 backdrop-blur px-3 py-2 shadow-lg shadow-admin-primary/10">
           {saved && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-[#2f6b3a] pl-2">
+            <span className="inline-flex items-center gap-1.5 text-xs text-admin-success pl-2">
               <Check className="h-3.5 w-3.5" /> Saved
             </span>
           )}
           <button
             onClick={handleSave}
-            className="inline-flex items-center gap-2 rounded-full bg-[#6b1e2b] px-5 py-2 text-sm font-medium text-[#faf3e2] hover:bg-[#5a1723]"
+            className="inline-flex items-center gap-2 rounded-full bg-admin-primary px-5 py-2 text-sm font-medium text-admin-bg hover:bg-admin-primary-hover"
           >
             <Save className="h-4 w-4" /> Save Changes
           </button>
