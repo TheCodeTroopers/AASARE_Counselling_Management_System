@@ -28,6 +28,28 @@
     },
     "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "eslint.config.js"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "integrations/**/*.ts",
+    "integrations/**/*.tsx",
+    "lib/**/*.ts",
+    "lib/**/*.tsx",
+    "constants/**/*.ts",
+    "constants/**/*.tsx",
+    "utils/**/*.ts",
+    "utils/**/*.tsx",
+    "types/**/*.ts",
+    "types/**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules",
+    "src"
+  ]
 }

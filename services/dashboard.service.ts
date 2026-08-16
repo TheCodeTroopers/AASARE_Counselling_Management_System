@@ -14,7 +14,48 @@ const slugMap: Record<string, string> = {
 
 export async function getDashboard() {
   const { data: authData } = await supabase.auth.getUser();
+  const mockProfileStr = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+
   if (!authData?.user) {
+    if (mockProfileStr) {
+      try {
+        const mockProfile = JSON.parse(mockProfileStr);
+        if (mockProfile.role === "counsellor") {
+          return {
+            success: true,
+            message: "Mock dashboard loaded",
+            data: {
+              stats: [
+                { label: "Today's Appointments", value: "1", tone: "primary" },
+                { label: "Upcoming Appointments", value: "2", tone: "secondary" },
+                { label: "Pending Requests", value: "1", tone: "warning" },
+                { label: "Approved", value: "2", tone: "success" },
+                { label: "Rejected", value: "1", tone: "danger" },
+              ],
+              chartData: [
+                { name: "Mon", appointments: 3, status: 2 },
+                { name: "Tue", appointments: 4, status: 3 },
+                { name: "Wed", appointments: 2, status: 1 },
+                { name: "Thu", appointments: 5, status: 4 },
+                { name: "Fri", appointments: 1, status: 1 },
+                { name: "Sat", appointments: 0, status: 0 },
+              ],
+              activityFeed: [
+                { id: "mock-act-1", title: "New pending request from Rahul Kumar", meta: "10 mins ago" },
+                {
+                  id: "mock-act-2",
+                  title: "Approved session for Priya Sharma on Wednesday",
+                  meta: "1 hour ago",
+                },
+                { id: "mock-act-3", title: "Completed check-in with Amit Hegde", meta: "Yesterday" },
+              ],
+            },
+          };
+        }
+      } catch (e) {
+        console.error("Mock dashboard parse error:", e);
+      }
+    }
     return {
       success: true,
       message: "No auth user",

@@ -65,6 +65,56 @@ export default function AuthPage() {
     e.preventDefault();
     setBusy(true);
 
+    const email = siEmail.trim().toLowerCase();
+
+    // Mock bypass for admin role
+    if (email.includes("admin")) {
+      toast.success("Welcome back (Mock Admin)");
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "mock_profile",
+          JSON.stringify({
+            id: "mock-admin-id",
+            email: email,
+            full_name: "AASARE Administrator",
+            role: "admin",
+          }),
+        );
+      }
+      setBusy(false);
+      router.push("/admin/dashboard");
+      return;
+    }
+
+    // Mock bypass for counsellor role
+    if (
+      email.includes("counsellor") ||
+      email.includes("counselor") ||
+      email.includes("meera") ||
+      email.includes("deepika")
+    ) {
+      toast.success("Welcome back (Mock Counsellor)");
+      const name = email.includes("meera")
+        ? "Dr. Meera S. (CSE)"
+        : email.includes("deepika")
+          ? "Prof. Deepika (Civil)"
+          : "Faculty Counsellor";
+      if (typeof window !== "undefined") {
+        localStorage.setItem(
+          "mock_profile",
+          JSON.stringify({
+            id: "mock-counsellor-id",
+            email: email,
+            full_name: name,
+            role: "counsellor",
+          }),
+        );
+      }
+      setBusy(false);
+      router.push("/dashboard");
+      return;
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email: siEmail.trim(),
       password: siPassword,
