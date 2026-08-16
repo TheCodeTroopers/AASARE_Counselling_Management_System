@@ -15,6 +15,7 @@ import {
   Save,
   CheckCircle2,
   Printer,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createCase, saveDraft } from "@/services/case.service";
@@ -1026,16 +1027,25 @@ export function CaseWizardForm() {
                 type="button"
                 onClick={handleSaveDraftClick}
                 disabled={submitting}
-                className="inline-flex items-center gap-1.5 rounded-2xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-slate-200 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-2xl border border-border bg-secondary px-4 py-2.5 text-sm font-semibold text-primary hover:bg-slate-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="h-4 w-4" /> Save Draft
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Saving Draft...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" /> Save Draft
+                  </>
+                )}
               </button>
 
               {step < steps.length - 1 ? (
                 <button
                   type="button"
                   onClick={() => setStep((s) => s + 1)}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-primary-hover cursor-pointer"
+                  disabled={submitting}
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-primary-hover disabled:opacity-50"
                 >
                   Next <ArrowRight className="h-4 w-4" />
                 </button>
@@ -1044,9 +1054,17 @@ export function CaseWizardForm() {
                   type="button"
                   onClick={submitCase}
                   disabled={submitting}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-800 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-2xl bg-emerald-700 px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="h-4 w-4" /> Submit Case Sheet
+                  {submitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" /> Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" /> Submit Case Sheet
+                    </>
+                  )}
                 </button>
               )}
             </div>

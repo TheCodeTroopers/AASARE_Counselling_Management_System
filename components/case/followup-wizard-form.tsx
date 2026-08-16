@@ -287,7 +287,7 @@ export function FollowupWizardForm({ caseId }: { caseId: string }) {
                   value={progressObservations}
                   onChange={(e) => setProgressObservations(e.target.value)}
                   placeholder="Record client progress since last session, changes in symptoms/behaviour, coping effectiveness, or newly expressed concerns..."
-                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40 placeholder:text-slate-400"
+                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm outline-none transition focus:ring-2 focus:ring-primary/40 placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -625,7 +625,7 @@ export function FollowupWizardForm({ caseId }: { caseId: string }) {
                   value={actionsPlanned}
                   onChange={(e) => setActionsPlanned(e.target.value)}
                   placeholder="Specify action steps, homework exercises, or faculty check-ins for the next visit..."
-                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm text-text outline-none transition focus:ring-2 focus:ring-primary/40 placeholder:text-slate-400"
+                  className="w-full rounded-2xl border border-border bg-secondary p-4 text-sm outline-none transition focus:ring-2 focus:ring-primary/40 placeholder:text-slate-400"
                 />
               </div>
             </div>
