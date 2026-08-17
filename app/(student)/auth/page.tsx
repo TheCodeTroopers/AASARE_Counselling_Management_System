@@ -44,8 +44,17 @@ export default function AuthPage() {
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
 
-  // If already signed in, bounce to the correct dashboard based on role
+  // If already signed in, bounce to the correct dashboard based on role (unless in password recovery)
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (hash.includes("type=recovery") || search.includes("type=recovery")) {
+        router.replace("/reset-password" + hash);
+        return;
+      }
+    }
+
     if (!authLoading && user) {
       const activeRole = profile?.role || role || "student";
       console.log(
@@ -97,6 +106,24 @@ export default function AuthPage() {
         router.push("/");
       }
     }
+  }
+
+  async function handleForgotPassword() {
+    const email = siEmail.trim();
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message || "Couldn't send reset email");
+      return;
+    }
+    toast.success("Password reset link sent — check your inbox");
   }
 
   async function handleSignUp(e: React.FormEvent) {
@@ -235,6 +262,16 @@ export default function AuthPage() {
                       className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>
+                  <div className="flex justify-end -mt-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={busy}
+                      className="text-xs font-medium text-primary underline-offset-2 hover:underline cursor-pointer disabled:opacity-60"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <SubmitButton busy={busy}>Sign in</SubmitButton>
                   <p className="text-center text-xs text-muted-foreground">
                     New here?{" "}

@@ -107,6 +107,24 @@ function AuthPage() {
     }
   }
 
+  async function handleForgotPassword() {
+    const email = siEmail.trim();
+    if (!email) {
+      toast.error("Please enter your email address first");
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message || "Couldn't send reset email");
+      return;
+    }
+    toast.success("Password reset link sent — check your inbox");
+  }
+
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     if (!suName.trim() || (suRole === "student" && !suUsn.trim())) {
@@ -247,6 +265,16 @@ function AuthPage() {
                       className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
                     />
                   </Field>
+                  <div className="flex justify-end -mt-2">
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={busy}
+                      className="text-xs font-medium text-primary underline-offset-2 hover:underline cursor-pointer disabled:opacity-60"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <SubmitButton busy={busy}>Sign in</SubmitButton>
                   <p className="text-center text-xs text-muted-foreground">
                     New here?{" "}
