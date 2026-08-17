@@ -86,35 +86,6 @@ export default function AuthPage() {
       return;
     }
 
-    // Mock bypass for counsellor role
-    if (
-      email.includes("counsellor") ||
-      email.includes("counselor") ||
-      email.includes("meera") ||
-      email.includes("deepika")
-    ) {
-      toast.success("Welcome back (Mock Counsellor)");
-      const name = email.includes("meera")
-        ? "Dr. Meera S. (CSE)"
-        : email.includes("deepika")
-          ? "Prof. Deepika (Civil)"
-          : "Faculty Counsellor";
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "mock_profile",
-          JSON.stringify({
-            id: "mock-counsellor-id",
-            email: email,
-            full_name: name,
-            role: "counsellor",
-          }),
-        );
-      }
-      setBusy(false);
-      router.push("/dashboard");
-      return;
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
       email: siEmail.trim(),
       password: siPassword,
