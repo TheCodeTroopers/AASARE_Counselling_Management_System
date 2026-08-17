@@ -32,7 +32,81 @@ const slugMap: Record<string, string> = {
 
 export async function getAppointments() {
   const { data: authData } = await supabase.auth.getUser();
+  const mockProfileStr = typeof window !== "undefined" ? localStorage.getItem("mock_profile") : null;
+
   if (!authData?.user) {
+    if (mockProfileStr) {
+      try {
+        const mockProfile = JSON.parse(mockProfileStr);
+        const isCounsellor = mockProfile.role === "counsellor";
+        const isMeera = mockProfile.email?.includes("meera");
+        const isDeepika = mockProfile.email?.includes("deepika");
+        const namePrefix = isMeera ? "Dr. Meera S." : isDeepika ? "Prof. Deepika" : "Faculty Counsellor";
+
+        const mockAppointments = [
+          {
+            id: "mock-1",
+            studentName: "Rahul Kumar",
+            studentEmail: "rahul.21cs@sode-edu.in",
+            studentUsn: "4SO21CS045",
+            department: "Computer Science & Engineering",
+            semester: "3rd Year",
+            appointmentDate: new Date().toISOString().split("T")[0],
+            time: "10:30 AM",
+            status: "pending",
+            reasonPreview: "Need guidance on academic stress and balancing exam preparations.",
+            rejectionReason: null,
+            counsellorId: "mock-counsellor-id",
+          },
+          {
+            id: "mock-2",
+            studentName: "Priya Sharma",
+            studentEmail: "priya.22ec@sode-edu.in",
+            studentUsn: "4SO22EC012",
+            department: "Electronics & Communication Engineering",
+            semester: "2nd Year",
+            appointmentDate: new Date(Date.now() + 86400000).toISOString().split("T")[0],
+            time: "02:00 PM",
+            status: "approved",
+            reasonPreview: "Discussing personal anxiety issues regarding campus placements.",
+            rejectionReason: null,
+            counsellorId: "mock-counsellor-id",
+          },
+          {
+            id: "mock-3",
+            studentName: "Amit Hegde",
+            studentEmail: "amit.20me@sode-edu.in",
+            studentUsn: "4SO20ME008",
+            department: "Mechanical Engineering",
+            semester: "4th Year",
+            appointmentDate: new Date(Date.now() - 86400000).toISOString().split("T")[0],
+            time: "11:00 AM",
+            status: "completed",
+            reasonPreview: "Career counseling and options for higher studies.",
+            rejectionReason: null,
+            counsellorId: "mock-counsellor-id",
+          },
+          {
+            id: "mock-4",
+            studentName: "Sneha Rao",
+            studentEmail: "sneha.23is@sode-edu.in",
+            studentUsn: "4SO23IS088",
+            department: "Computer Science & Engineering",
+            semester: "1st Year",
+            appointmentDate: new Date(Date.now() + 172800000).toISOString().split("T")[0],
+            time: "09:30 AM",
+            status: "rejected",
+            reasonPreview: "Feeling homesick and unable to focus on lectures.",
+            rejectionReason: "Counsellor is on leave. Please book for next Tuesday.",
+            counsellorId: "mock-counsellor-id",
+          },
+        ];
+
+        return { success: true, message: "Mock appointments loaded", data: mockAppointments };
+      } catch (e) {
+        console.error("Failed to parse mock profile in service:", e);
+      }
+    }
     return { success: true, message: "No authenticated user", data: [] };
   }
 
@@ -102,6 +176,9 @@ export async function getAppointments() {
 }
 
 export async function acceptAppointment(id: string) {
+  if (id.startsWith("mock-")) {
+    return { success: true, message: `Appointment ${id} approved`, data: { id } };
+  }
   const { data, error } = await supabase
     .from("appointments")
     .update({ status: "approved", rejection_reason: null })
@@ -116,6 +193,9 @@ export async function acceptAppointment(id: string) {
 }
 
 export async function rejectAppointment(id: string, reason?: string) {
+  if (id.startsWith("mock-")) {
+    return { success: true, message: `Appointment ${id} rejected`, data: { id, reason } };
+  }
   const { data, error } = await supabase
     .from("appointments")
     .update({ status: "rejected", rejection_reason: reason || null })

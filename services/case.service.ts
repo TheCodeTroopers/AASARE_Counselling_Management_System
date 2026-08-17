@@ -6,6 +6,19 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+export type FollowupSession = {
+  id: string;
+  sessionNumber: number;
+  followupDate: string;
+  counsellorName?: string;
+  progressObservations: string;
+  interventionsProvided?: string[];
+  isFollowupNeeded: boolean;
+  nextFollowupDate?: string;
+  actionsPlanned?: string;
+  createdAt: string;
+};
+
 export type CaseSheetRecord = {
   id: string;
   studentName: string;
@@ -14,7 +27,9 @@ export type CaseSheetRecord = {
   status: "draft" | "submitted" | "completed";
   createdDate: string;
   lastUpdated: string;
-  data: Record<string, unknown>;
+  data: Record<string, unknown> & {
+    followupSessions?: FollowupSession[];
+  };
 };
 
 export async function createCase(formData: any) {

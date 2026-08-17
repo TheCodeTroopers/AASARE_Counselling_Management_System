@@ -2,14 +2,13 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { NextRequest } from "next/server";
 
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  "https://vgsyirselvakpjcfwfgi.supabase.co";
+const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+const SUPABASE_URL = !rawUrl || rawUrl.includes("bofaaxmskkuxgsdpwopc")
+  ? "https://vgsyirselvakpjcfwfgi.supabase.co"
+  : rawUrl;
 const SUPABASE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.SUPABASE_PUBLISHABLE_KEY ||
-  "sb_publishable_OhN4Zj3bW8Z6gv-SeHH2xw_3lF7RPyW";
+  process.env.SUPABASE_PUBLISHABLE_KEY;
 
 export function getBearerToken(req: NextRequest): string | null {
   const authHeader = req.headers.get("authorization");
@@ -25,6 +24,9 @@ export function getBearerToken(req: NextRequest): string | null {
  * resolve the user AND satisfy RLS.
  */
 export function createAuthedSupabase(token: string | null): SupabaseClient<Database> {
+  if (!SUPABASE_KEY) {
+    throw new Error("SUPABASE_KEY not found");
+  }
   return createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
     global: {
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,

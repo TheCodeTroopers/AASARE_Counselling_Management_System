@@ -37,6 +37,7 @@ export async function getDriveStatus() {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     const res = await fetch("/api/drive/status", {
+      cache: "no-store",
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (res.ok) {
@@ -93,22 +94,13 @@ export async function getDriveStatus() {
 
 export async function connectGoogleDrive() {
   const state = { connected: true, lastSync: new Date().toLocaleTimeString() };
-  localStorage.setItem(DRIVE_KEY, JSON.stringify(state));
-
-  try {
-    const { data: authData } = await supabase.auth.getUser();
-    const email = authData?.user?.email || "counsellor@sode-edu.in";
-    await supabase.from("drive_connections").upsert(
-      {
-        counsellor_email: email,
-        is_connected: true,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "counsellor_email" },
-    );
-  } catch {
-    // Fallback
+  if (typeof window !== "undefined") {
+    localStorage.setItem(DRIVE_KEY, JSON.stringify(state));
   }
+
+  // Note: The OAuth server callback (/api/drive/callback) automatically creates the Google Drive folder,
+  // generates tokens, and updates `drive_connections` in Supabase atomically.
+  // We do not run a bare client-side upsert here to prevent overwriting folder_id or tokens.
 
   return { success: true, message: "Google Drive account connected!", data: state };
 }
@@ -183,23 +175,25 @@ export async function updateFolderConfig(config: DriveFolderConfig) {
     : "https://drive.google.com/drive/my-drive";
 
   const updated = { ...config, folderUrl };
-  localStorage.setItem(FOLDER_KEY, JSON.stringify(updated));
+  if (typeof window !== "undefined") {
+    localStorage.setItem(FOLDER_KEY, JSON.stringify(updated));
+  }
 
   try {
-    const { data: authData } = await supabase.auth.getUser();
-    const email = authData?.user?.email || "counsellor@sode-edu.in";
-    await supabase.from("drive_connections").upsert(
-      {
-        counsellor_email: email,
-        folder_name: config.folderName,
-        folder_id: config.folderId,
-        folder_url: folderUrl,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "counsellor_email" },
-    );
-  } catch {
-    // Fallback
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (token) {
+      await fetch("/api/drive/config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(config),
+      });
+    }
+  } catch (err) {
+    console.error("[Drive Config Update Error]", err);
   }
 
   return { success: true, message: "Folder updated!", data: updated };

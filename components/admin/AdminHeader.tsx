@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, Bell, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationDrawer } from "@/components/notifications/notification-drawer";
 
@@ -12,6 +15,8 @@ export default function AdminHeader({
   title?: string;
   subtitle?: string;
 }) {
+  const router = useRouter();
+  const { signOut } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
   const { unreadCount } = useNotifications();
 
@@ -57,15 +62,26 @@ export default function AdminHeader({
             )}
           </div>
 
-          <div className="flex items-center gap-3 rounded-full border border-admin-border bg-white pl-1 pr-3 py-1">
+          <div className="flex items-center gap-3 rounded-full border border-admin-border bg-white pl-1 pr-2 py-1">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-admin-primary text-[#f5e9c8] text-xs font-semibold">
               AD
             </div>
-            <div className="hidden sm:block leading-tight">
+            <div className="hidden sm:block leading-tight pr-1">
               <div className="text-xs font-semibold text-admin-text">Admin</div>
               <div className="text-[10px] text-admin-muted">admin@sode-edu.in</div>
             </div>
-            <ChevronDown className="h-4 w-4 text-admin-muted" />
+            <button
+              onClick={async () => {
+                await signOut();
+                toast.success("Signed out successfully");
+                router.push("/auth");
+              }}
+              title="Sign Out"
+              className="p-1.5 text-admin-muted hover:text-admin-primary transition-colors cursor-pointer rounded-full hover:bg-admin-bg"
+              aria-label="Sign out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
       </div>

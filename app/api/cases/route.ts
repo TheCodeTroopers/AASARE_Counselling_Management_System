@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -89,13 +92,35 @@ export async function POST(req: NextRequest) {
     let driveFileUrl = null;
 
     if (accessToken) {
+      const { createDriveFolder } = await import("@/lib/google-drive");
       const { data: connection } = await supabase
         .from("drive_connections")
         .select("folder_id")
         .eq("counsellor_email", userEmail)
-        .single();
+        .maybeSingle();
 
-      const folderId = connection?.folder_id || "aasare_official_casesheet_folder";
+      let folderId = connection?.folder_id && connection.folder_id !== "aasare_official_casesheet_folder"
+        ? connection.folder_id
+        : "";
+
+      if (!folderId) {
+        const newFolder = await createDriveFolder(accessToken, "AASARE Counselling Case Sheets");
+        if (newFolder?.id) {
+          folderId = newFolder.id;
+          await supabase.from("drive_connections").upsert(
+            {
+              counsellor_email: userEmail,
+              user_id: userId,
+              folder_name: newFolder.name,
+              folder_id: newFolder.id,
+              folder_url: newFolder.webViewLink,
+              is_connected: true,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "counsellor_email" }
+          );
+        }
+      }
 
       // A. Save internal form JSON in Google Drive appDataFolder (hidden from user)
       const jsonBuffer = Buffer.from(JSON.stringify(body, null, 2));

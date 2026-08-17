@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Printer, ArrowLeft, ShieldCheck, CheckSquare, Square, Calendar, User } from "lucide-react";
+import { Printer, ArrowLeft, ShieldCheck, CheckSquare, Square, Calendar, User, PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { getCase } from "@/services/case.service";
+import { getCase, type FollowupSession, type CaseSheetRecord } from "@/services/case.service";
 import { SectionCard } from "@/components/common/section-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
@@ -21,8 +21,9 @@ export function CaseDetailsView({ caseId }: { caseId: string }) {
       </div>
     );
 
-  const item = data.data;
-  const sheet = (item.data as Record<string, React.ReactNode>) || {};
+  const item = data.data as unknown as CaseSheetRecord;
+  const sheet = (item.data as Record<string, any>) || {};
+  const followupSessions: FollowupSession[] = (sheet.followupSessions as FollowupSession[]) || [];
 
   const handlePrint = () => {
     window.print();
@@ -31,24 +32,32 @@ export function CaseDetailsView({ caseId }: { caseId: string }) {
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       {/* Top Controls Bar (hidden during print) */}
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <Link
           href="/case-management"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-primary transition"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Case Directory
         </Link>
-        <button
-          type="button"
-          onClick={handlePrint}
-          className="inline-flex items-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-primary-hover cursor-pointer"
-        >
-          <Printer className="h-4 w-4" /> Print / Export Official PDF
-        </button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          <Link
+            href={`/case/${caseId}/followup`}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary bg-white px-4 py-2.5 text-sm font-semibold text-primary shadow transition hover:bg-secondary cursor-pointer w-full sm:w-auto"
+          >
+            <PlusCircle className="h-4 w-4 shrink-0" /> Add Follow-up Session
+          </Link>
+          <button
+            type="button"
+            onClick={handlePrint}
+            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow transition hover:bg-primary-hover cursor-pointer w-full sm:w-auto"
+          >
+            <Printer className="h-4 w-4 shrink-0" /> Print / Export Official PDF
+          </button>
+        </div>
       </div>
 
       {/* Official Case Sheet Printable Container */}
-      <div className="rounded-3xl border border-border bg-white p-8 shadow-sm print:border-none print:shadow-none print:p-0">
+      <div className="rounded-3xl border border-border bg-white p-4 sm:p-6 md:p-8 shadow-sm print:border-none print:shadow-none print:p-0">
         {/* Document Header */}
         <div className="border-b-2 border-primary pb-4 text-center">
           <p className="text-xs font-bold uppercase tracking-widest text-accent">
@@ -106,7 +115,7 @@ export function CaseDetailsView({ caseId }: { caseId: string }) {
             </div>
             <div className="rounded-xl bg-secondary p-3">
               <span className="font-semibold text-slate-600 block text-xs">Contact / Email:</span>
-              <span className="font-medium text-slate-900">
+              <span className="font-medium text-slate-900 wrap-break-word">
                 {sheet.contactNumber || "N/A"} · {sheet.email || "N/A"}
               </span>
             </div>
@@ -288,9 +297,73 @@ export function CaseDetailsView({ caseId }: { caseId: string }) {
           </div>
         </div>
 
-        {/* 7. Consent & Confidentiality & Signatures */}
+        {/* 7. Follow-Up Sessions History */}
+        {followupSessions.length > 0 && (
+          <div className="mt-6 space-y-4">
+            <div className="border-b-2 border-primary pb-1">
+              <h2 className="font-semibold text-base text-primary">
+                7. Follow-Up Sessions History ({followupSessions.length})
+              </h2>
+            </div>
+
+            <div className="space-y-4">
+              {followupSessions.map((session: FollowupSession, idx: number) => (
+                <div key={session.id || idx} className="space-y-2.5">
+                  <div className="font-semibold text-sm text-primary pt-1">
+                    Follow-up Session #{session.sessionNumber || idx + 1} &nbsp;•&nbsp; Date: {session.followupDate}
+                  </div>
+
+                  <div className="rounded-xl bg-secondary p-3 text-sm">
+                    <span className="font-semibold text-slate-600 block text-xs">
+                      Progress & Session Observations:
+                    </span>
+                    <p className="mt-1 text-slate-900 leading-relaxed">
+                      {session.progressObservations || "None recorded."}
+                    </p>
+                  </div>
+
+                  {session.interventionsProvided && session.interventionsProvided.length > 0 && (
+                    <div className="rounded-xl bg-secondary p-3 text-sm">
+                      <span className="font-semibold text-slate-600 block text-xs">
+                        Interventions Provided:
+                      </span>
+                      <p className="mt-1 text-slate-900 font-medium">
+                        {session.interventionsProvided.join(", ")}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid gap-3 text-sm sm:grid-cols-2">
+                    <div className="rounded-xl bg-secondary p-3">
+                      <span className="font-semibold text-slate-600 block text-xs">
+                        Further Follow-Up:
+                      </span>
+                      <span className="font-medium text-slate-900">
+                        {session.isFollowupNeeded
+                          ? `Yes (Scheduled: ${session.nextFollowupDate || "TBD"})`
+                          : "No (Completed)"}
+                      </span>
+                    </div>
+                    <div className="rounded-xl bg-secondary p-3">
+                      <span className="font-semibold text-slate-600 block text-xs">
+                        Actions Planned:
+                      </span>
+                      <span className="font-medium text-slate-900">
+                        {session.actionsPlanned || "None noted."}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Consent & Confidentiality & Signatures */}
         <div className="mt-8 border-t-2 border-border pt-6 space-y-4">
-          <h2 className="font-semibold text-base text-primary">7. Consent & Confidentiality</h2>
+          <h2 className="font-semibold text-base text-primary">
+            {followupSessions.length > 0 ? "8" : "7"}. Consent & Confidentiality
+          </h2>
           <div className="space-y-2 text-xs text-slate-700">
             <div className="flex items-center gap-2">
               {sheet.consentInfoPolicy !== false ? (

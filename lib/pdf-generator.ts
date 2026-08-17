@@ -186,20 +186,24 @@ export async function generateCaseReportPDF(caseId: string, caseData: any): Prom
         const valH = doc.heightOfString(val || "N/A", { width: w - 20 });
         const boxH = Math.max(40, labelH + valH + 14);
 
+        // Check page break dynamically before drawing card
+        checkPageBreak(boxH + 4);
+        const actualY = y;
+
         // bg-secondary (#f8f3ee soft cream card)
-        doc.roundedRect(x, boxY, w, boxH, 8).fill(COLOR_SECONDARY);
+        doc.roundedRect(x, actualY, w, boxH, 8).fill(COLOR_SECONDARY);
 
         doc
           .fillColor(COLOR_TEXT_MUTED)
           .fontSize(9)
           .font("Helvetica-Bold")
-          .text(label, x + 10, boxY + 7, { width: w - 20 });
+          .text(label, x + 10, actualY + 7, { width: w - 20 });
 
         doc
           .fillColor(COLOR_TEXT_DARK)
           .fontSize(10.5)
           .font("Helvetica")
-          .text(val || "N/A", x + 10, boxY + 7 + labelH + 3, {
+          .text(val || "N/A", x + 10, actualY + 7 + labelH + 3, {
             width: w - 20,
           });
 
@@ -506,8 +510,84 @@ export async function generateCaseReportPDF(caseId: string, caseData: any): Prom
       );
       y += fu3H + 14;
 
-      // ── 7. Consent & Confidentiality & Signatures ───────────────────────────
-      drawSectionHeader("7. Consent & Confidentiality", 90);
+      // ── Follow-Up Sessions History ──────────────────────────────────
+      if (Array.isArray(caseData.followupSessions) && caseData.followupSessions.length > 0) {
+        drawSectionHeader(
+          `7. Follow-Up Sessions History (${caseData.followupSessions.length})`,
+          60
+        );
+
+        for (const session of caseData.followupSessions) {
+          checkPageBreak(80);
+
+          doc
+            .fillColor(COLOR_PRIMARY)
+            .fontSize(10.5)
+            .font("Helvetica-Bold")
+            .text(
+              `Follow-up Session #${session.sessionNumber || 1}   •   Date: ${session.followupDate || ""}`,
+              MARGIN,
+              y
+            );
+          y += 15;
+
+          const obsH = drawGridCard(
+            MARGIN,
+            y,
+            CONTENT_WIDTH,
+            "Progress & Session Observations:",
+            session.progressObservations || "None recorded."
+          );
+          y += obsH + 8;
+
+          if (session.interventionsProvided && session.interventionsProvided.length > 0) {
+            const intH = drawGridCard(
+              MARGIN,
+              y,
+              CONTENT_WIDTH,
+              "Interventions Provided:",
+              session.interventionsProvided.join(", ")
+            );
+            y += intH + 8;
+          }
+
+          // Calculate max height for two-column pair to prevent page split between left/right cards
+          const fText1 = session.isFollowupNeeded
+            ? `Yes (Scheduled: ${session.nextFollowupDate || "TBD"})`
+            : "No (Completed)";
+          const fText2 = session.actionsPlanned || "None noted.";
+
+          doc.font("Helvetica-Bold").fontSize(9);
+          const lH1 = doc.heightOfString("Further Follow-Up:", { width: halfW - 20 });
+          const lH2 = doc.heightOfString("Actions Planned:", { width: halfW - 20 });
+          doc.font("Helvetica").fontSize(10.5);
+          const vH1 = doc.heightOfString(fText1, { width: halfW - 20 });
+          const vH2 = doc.heightOfString(fText2, { width: halfW - 20 });
+          const pairBoxH = Math.max(40, lH1 + vH1 + 14, lH2 + vH2 + 14);
+
+          checkPageBreak(pairBoxH + 4);
+
+          const fuH1 = drawGridCard(
+            MARGIN,
+            y,
+            halfW,
+            "Further Follow-Up:",
+            fText1
+          );
+          const fuH2 = drawGridCard(
+            MARGIN + halfW + colGap,
+            y,
+            halfW,
+            "Actions Planned:",
+            fText2
+          );
+          y += Math.max(fuH1, fuH2) + 12;
+        }
+      }
+
+      // ── Consent & Confidentiality & Signatures ───────────────────────────
+      const hasFollowupSessions = Array.isArray(caseData.followupSessions) && caseData.followupSessions.length > 0;
+      drawSectionHeader(`${hasFollowupSessions ? 8 : 7}. Consent & Confidentiality`, 90);
 
       const drawConsentRow = (checked: boolean, label: string) => {
         doc.font("Helvetica").fontSize(9.5);

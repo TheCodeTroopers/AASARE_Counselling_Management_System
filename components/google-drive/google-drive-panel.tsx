@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { HardDrive, FolderIcon, HardDriveIcon, ExternalLinkIcon } from "lucide-react";
+import { FolderIcon, HardDriveIcon, ExternalLinkIcon, RefreshCwIcon, CheckCircle2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -10,18 +10,12 @@ import {
   disconnectGoogleDrive,
   getDriveStatus,
   getFolderConfig,
-  updateFolderConfig,
-  type DriveFolderConfig,
 } from "@/services/googleDrive.service";
 import { Button } from "@/components/common/button";
 import { SectionCard } from "@/components/common/section-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
 
 export function GoogleDrivePanel() {
-  const [editingFolder, setEditingFolder] = useState(false);
-  const [folderNameInput, setFolderNameInput] = useState("");
-  const [folderIdInput, setFolderIdInput] = useState("");
-
   const {
     data: statusData,
     isLoading,
@@ -32,7 +26,7 @@ export function GoogleDrivePanel() {
     queryFn: getDriveStatus,
   });
 
-  const { data: folderData, refetch: refetchFolder } = useQuery({
+  const { data: folderData } = useQuery({
     queryKey: ["drive-folder"],
     queryFn: getFolderConfig,
   });
@@ -48,13 +42,6 @@ export function GoogleDrivePanel() {
         ? `https://drive.google.com/drive/folders/${folderData.folderId.trim()}`
         : folderData?.folderUrl || "https://drive.google.com/drive/my-drive"),
   };
-
-  useEffect(() => {
-    if (folderData) {
-      setFolderNameInput(folderData.folderName);
-      setFolderIdInput(folderData.folderId);
-    }
-  }, [folderData]);
 
   useEffect(() => {
     async function markConnected() {
@@ -75,6 +62,8 @@ export function GoogleDrivePanel() {
     function handleMessage(event: MessageEvent) {
       if (event.data === "gdrive_connected" || event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
         markConnected();
+      } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
+        toast.error(event.data.error || "Google Drive connection failed");
       }
     }
 
@@ -136,25 +125,6 @@ export function GoogleDrivePanel() {
     }
   };
 
-  const handleFolderSave = async () => {
-    const newName = folderNameInput.trim() || "AASARE Counselling Case Sheets";
-    const newId = folderIdInput.trim();
-    const newUrl = newId
-      ? `https://drive.google.com/drive/folders/${newId}`
-      : "https://drive.google.com/drive/my-drive";
-
-    const updatedConfig: DriveFolderConfig = {
-      folderName: newName,
-      folderId: newId,
-      folderUrl: newUrl,
-    };
-
-    await updateFolderConfig(updatedConfig);
-    toast.success(`Google Drive target folder set to "${newName}"`);
-    setEditingFolder(false);
-    await refetchFolder();
-  };
-
   if (isLoading) return <LoadingSkeleton rows={4} />;
   if (isError)
     return (
@@ -171,44 +141,66 @@ export function GoogleDrivePanel() {
       >
         {/* Dashboard Cards Grid */}
         <div className="grid gap-4 md:grid-cols-3">
-          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card">
+          {/* Card 1: Connection Status & Action */}
+          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Connection
               </span>
               <HardDriveIcon className="h-4 w-4 text-primary" />
             </div>
-            <div className="mt-2 flex items-center gap-2">
-              <span
-                className={`h-2.5 w-2.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-rose-500"}`}
-              />
-              <p
-                className={`text-lg font-bold ${isConnected ? "text-emerald-700" : "text-rose-700"}`}
-              >
-                {isConnected ? "Connected" : "Disconnected"}
-              </p>
+            <div className="mt-3 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-rose-500"}`}
+                />
+                <p
+                  className={`text-base font-bold ${isConnected ? "text-emerald-700" : "text-rose-700"}`}
+                >
+                  {isConnected ? "Connected" : "Disconnected"}
+                </p>
+              </div>
+              {isConnected ? (
+                <Button variant="danger" className="px-3 py-1.5 text-xs" onClick={handleDisconnect}>
+                  Disconnect
+                </Button>
+              ) : (
+                <Button variant="primary" className="px-3 py-1.5 text-xs" onClick={handleConnect}>
+                  Connect
+                </Button>
+              )}
             </div>
           </div>
 
-          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Last Sync
-            </span>
-            <p className="mt-2 text-lg font-semibold text-primary">
+          {/* Card 2: Last Sync */}
+          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Last Sync
+              </span>
+              <RefreshCwIcon className="h-4 w-4 text-primary" />
+            </div>
+            <p className="mt-3 text-lg font-bold text-slate-800">
               {statusData?.lastSync || "Just now"}
             </p>
           </div>
 
-          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex items-center justify-end">
-            {isConnected ? (
-              <Button variant="danger" onClick={handleDisconnect}>
-                Disconnect
-              </Button>
-            ) : (
-              <Button variant="primary" onClick={handleConnect}>
-                Connect Drive
-              </Button>
-            )}
+          {/* Card 3: Auto-Sync Status */}
+          <div className="rounded-[20px] border border-border bg-white p-4 shadow-card flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Auto-Sync Mode
+              </span>
+              <CheckCircle2Icon className={`h-4 w-4 ${isConnected ? "text-emerald-600" : "text-slate-400"}`} />
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-slate-400"}`}
+              />
+              <p className="text-base font-bold text-slate-800">
+                {isConnected ? "Active & Syncing" : "Paused"}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -240,56 +232,8 @@ export function GoogleDrivePanel() {
               >
                 <ExternalLinkIcon className="h-3.5 w-3.5" /> Open Folder in Google Drive
               </a>
-              <button
-                type="button"
-                onClick={() => setEditingFolder(!editingFolder)}
-                className="inline-flex items-center gap-1 rounded-2xl border border-border bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-              >
-                {editingFolder ? "Cancel" : "Change Folder"}
-              </button>
             </div>
           </div>
-
-          {/* Edit Folder Settings Dropdown */}
-          {editingFolder && (
-            <div className="mt-4 border-t border-border pt-4 space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Drive Folder Name
-                  </label>
-                  <input
-                    type="text"
-                    value={folderNameInput}
-                    onChange={(e) => setFolderNameInput(e.target.value)}
-                    placeholder="e.g. AASARE Counselling Case Sheets"
-                    className="w-full rounded-2xl border border-border bg-white p-3 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-primary/40"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-600">
-                    Drive Folder ID or URL (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={folderIdInput}
-                    onChange={(e) => setFolderIdInput(e.target.value)}
-                    placeholder="e.g. 1A2b3c4D5e6F_Folder_ID"
-                    className="w-full rounded-2xl border border-border bg-white p-3 text-sm text-slate-900 outline-none transition focus:ring-2 focus:ring-primary/40"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleFolderSave}
-                  className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-5 py-2 text-xs font-semibold text-white shadow hover:bg-primary-hover cursor-pointer"
-                >
-                  Save Target Folder
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </SectionCard>
     </div>
