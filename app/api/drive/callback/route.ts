@@ -64,12 +64,15 @@ export async function GET(req: NextRequest) {
           process.env.SUPABASE_URL ||
           "https://vgsyirselvakpjcfwfgi.supabase.co";
         const SUPABASE_KEY =
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
           process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
           process.env.SUPABASE_PUBLISHABLE_KEY ||
           "sb_publishable_OhN4Zj3bW8Z6gv-SeHH2xw_3lF7RPyW";
         const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
           global: {
-            headers: stateToken ? { Authorization: `Bearer ${stateToken}` } : undefined,
+            headers: stateToken && !process.env.SUPABASE_SERVICE_ROLE_KEY
+              ? { Authorization: `Bearer ${stateToken}` }
+              : undefined,
           },
           auth: {
             storage: undefined,
