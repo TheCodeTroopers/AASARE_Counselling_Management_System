@@ -40,7 +40,6 @@ export async function GET(req: NextRequest) {
       process.env.GOOGLE_REDIRECT_URI || `${req.nextUrl.origin}/api/drive/callback`;
 
     if (clientId && clientSecret) {
-      console.log("[Drive Callback] Exchanging code for tokens with redirectUri:", redirectUri);
       const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -54,12 +53,6 @@ export async function GET(req: NextRequest) {
       });
 
       const tokenData = await tokenRes.json();
-      console.log("[Drive Callback] Token exchange response:", {
-        hasAccess: Boolean(tokenData.access_token),
-        hasRefresh: Boolean(tokenData.refresh_token),
-        error: tokenData.error,
-        error_description: tokenData.error_description,
-      });
 
       if (!tokenData.access_token) {
         const errMsg = tokenData.error_description || tokenData.error || "Failed to exchange OAuth code for access token";
@@ -114,14 +107,12 @@ export async function GET(req: NextRequest) {
         if (authData?.user?.email) userEmail = authData.user.email;
       }
 
-      console.log("[Drive Callback] Creating drive folder for user:", userEmail, "userId:", userId);
       const folder = await createDriveFolder(
         tokenData.access_token,
         "AASARE Counselling Case Sheets",
       );
-      console.log("[Drive Callback] Folder created:", folder);
 
-      const { data: dbData, error: dbErr } = await supabase
+      const { error: dbErr } = await supabase
         .from("drive_connections")
         .upsert(
           {
@@ -136,8 +127,7 @@ export async function GET(req: NextRequest) {
             updated_at: new Date().toISOString(),
           },
           { onConflict: "counsellor_email" },
-        )
-        .select("*");
+        );
 
       if (dbErr) {
         console.error("[Drive Callback Error] Supabase DB upsert failed:", dbErr);
@@ -146,8 +136,6 @@ export async function GET(req: NextRequest) {
           { headers: { "content-type": "text/html" } },
         );
       }
-
-      console.log("[Drive Callback Success] Saved connection to DB:", dbData);
     }
 
     const htmlContent = `
