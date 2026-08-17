@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 import { getValidAccessToken, listDriveFolderFiles } from "@/lib/google-drive";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = createAuthedSupabase(getBearerToken(req));

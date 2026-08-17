@@ -37,6 +37,7 @@ export async function getDriveStatus() {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData?.session?.access_token;
     const res = await fetch("/api/drive/status", {
+      cache: "no-store",
       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
     if (res.ok) {
