@@ -94,22 +94,13 @@ export async function getDriveStatus() {
 
 export async function connectGoogleDrive() {
   const state = { connected: true, lastSync: new Date().toLocaleTimeString() };
-  localStorage.setItem(DRIVE_KEY, JSON.stringify(state));
-
-  try {
-    const { data: authData } = await supabase.auth.getUser();
-    const email = authData?.user?.email || "counsellor@sode-edu.in";
-    await supabase.from("drive_connections").upsert(
-      {
-        counsellor_email: email,
-        is_connected: true,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "counsellor_email" },
-    );
-  } catch {
-    // Fallback
+  if (typeof window !== "undefined") {
+    localStorage.setItem(DRIVE_KEY, JSON.stringify(state));
   }
+
+  // Note: The OAuth server callback (/api/drive/callback) automatically creates the Google Drive folder,
+  // generates tokens, and updates `drive_connections` in Supabase atomically.
+  // We do not run a bare client-side upsert here to prevent overwriting folder_id or tokens.
 
   return { success: true, message: "Google Drive account connected!", data: state };
 }
