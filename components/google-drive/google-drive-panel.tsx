@@ -62,6 +62,8 @@ export function GoogleDrivePanel() {
     function handleMessage(event: MessageEvent) {
       if (event.data === "gdrive_connected" || event.data?.type === "GOOGLE_DRIVE_AUTH_SUCCESS") {
         markConnected();
+      } else if (event.data?.type === "GOOGLE_DRIVE_AUTH_ERROR") {
+        toast.error(event.data.error || "Google Drive connection failed");
       }
     }
 

@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
       process.env.GOOGLE_REDIRECT_URI || `${req.nextUrl.origin}/api/drive/callback`;
 
     if (clientId && clientSecret) {
+      console.log("[Drive Callback] Exchanging code for tokens with redirectUri:", redirectUri);
       const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -53,75 +54,100 @@ export async function GET(req: NextRequest) {
       });
 
       const tokenData = await tokenRes.json();
-      if (tokenData.access_token) {
-        const { encryptPayload } = await import("@/lib/crypto");
-        const { createDriveFolder } = await import("@/lib/google-drive");
-        const { createClient } = await import("@supabase/supabase-js");
+      console.log("[Drive Callback] Token exchange response:", {
+        hasAccess: Boolean(tokenData.access_token),
+        hasRefresh: Boolean(tokenData.refresh_token),
+        error: tokenData.error,
+        error_description: tokenData.error_description,
+      });
 
-        // Use the user's token from `state` so RLS recognizes the request.
-        const SUPABASE_URL =
-          process.env.NEXT_PUBLIC_SUPABASE_URL ||
-          process.env.SUPABASE_URL ||
-          "https://vgsyirselvakpjcfwfgi.supabase.co";
-        const SUPABASE_KEY =
-          process.env.SUPABASE_SERVICE_ROLE_KEY ||
-          process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-          process.env.SUPABASE_PUBLISHABLE_KEY ||
-          "sb_publishable_OhN4Zj3bW8Z6gv-SeHH2xw_3lF7RPyW";
-        const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
-          global: {
-            headers: stateToken && !process.env.SUPABASE_SERVICE_ROLE_KEY
-              ? { Authorization: `Bearer ${stateToken}` }
-              : undefined,
-          },
-          auth: {
-            storage: undefined,
-            persistSession: false,
-            autoRefreshToken: false,
-          },
-        });
-
-        const encAccessToken = encryptPayload({ token: tokenData.access_token });
-        const encRefreshToken = tokenData.refresh_token
-          ? encryptPayload({ token: tokenData.refresh_token })
-          : null;
-
-        // Resolve the real user from the state payload token; fall back to the
-        // default email if unavailable.
-        let userId: string | null = null;
-        let userEmail = stateEmail || "counsellor@sode-edu.in";
-
-        if (stateToken) {
-          const { data: authData } = await supabase.auth.getUser(stateToken);
-          userId = authData?.user?.id || null;
-          if (authData?.user?.email) userEmail = authData.user.email;
-        }
-
-        // Create dedicated "AASARE Counselling Case Sheets" folder in Google Drive
-        const folder = await createDriveFolder(
-          tokenData.access_token,
-          "AASARE Counselling Case Sheets",
+      if (!tokenData.access_token) {
+        const errMsg = tokenData.error_description || tokenData.error || "Failed to exchange OAuth code for access token";
+        console.error("[Drive Callback Error]", errMsg);
+        return new NextResponse(
+          `<html><body><script>window.opener?.postMessage({ type: 'GOOGLE_DRIVE_AUTH_ERROR', error: '${errMsg}' }, '*');</script><h2 style="color:red;">Google OAuth Error: ${errMsg}</h2><p>Please check your Redirect URI in Google Cloud Console.</p></body></html>`,
+          { headers: { "content-type": "text/html" } },
         );
-
-        try {
-          await supabase.from("drive_connections").upsert(
-            {
-              counsellor_email: userEmail,
-              user_id: userId,
-              folder_name: folder?.name || "AASARE Counselling Case Sheets",
-              folder_id: folder?.id || null,
-              folder_url: folder?.webViewLink || null,
-              encrypted_access_token: encAccessToken,
-              encrypted_refresh_token: encRefreshToken,
-              is_connected: true,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "counsellor_email" },
-          );
-        } catch {
-          // Fallback notice
-        }
       }
+
+      const { encryptPayload } = await import("@/lib/crypto");
+      const { createDriveFolder } = await import("@/lib/google-drive");
+      const { createClient } = await import("@supabase/supabase-js");
+
+      const SUPABASE_URL =
+        process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        process.env.SUPABASE_URL ||
+        "https://vgsyirselvakpjcfwfgi.supabase.co";
+      const SUPABASE_KEY =
+        process.env.SUPABASE_SERVICE_ROLE_KEY ||
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+        process.env.SUPABASE_PUBLISHABLE_KEY;
+
+      if (!SUPABASE_KEY) {
+        return NextResponse.json("SUPABASE_KEY not found", { status: 500 });
+      }
+
+      const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
+        global: {
+          headers: stateToken && !process.env.SUPABASE_SERVICE_ROLE_KEY
+            ? { Authorization: `Bearer ${stateToken}` }
+            : undefined,
+        },
+        auth: {
+          storage: undefined,
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      });
+
+      const encAccessToken = encryptPayload({ token: tokenData.access_token });
+      const encRefreshToken = tokenData.refresh_token
+        ? encryptPayload({ token: tokenData.refresh_token })
+        : null;
+
+      let userId: string | null = null;
+      let userEmail = stateEmail || "counsellor@sode-edu.in";
+
+      if (stateToken) {
+        const { data: authData } = await supabase.auth.getUser(stateToken);
+        userId = authData?.user?.id || null;
+        if (authData?.user?.email) userEmail = authData.user.email;
+      }
+
+      console.log("[Drive Callback] Creating drive folder for user:", userEmail, "userId:", userId);
+      const folder = await createDriveFolder(
+        tokenData.access_token,
+        "AASARE Counselling Case Sheets",
+      );
+      console.log("[Drive Callback] Folder created:", folder);
+
+      const { data: dbData, error: dbErr } = await supabase
+        .from("drive_connections")
+        .upsert(
+          {
+            counsellor_email: userEmail,
+            user_id: userId,
+            folder_name: folder?.name || "AASARE Counselling Case Sheets",
+            folder_id: folder?.id || null,
+            folder_url: folder?.webViewLink || null,
+            encrypted_access_token: encAccessToken,
+            encrypted_refresh_token: encRefreshToken,
+            is_connected: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "counsellor_email" },
+        )
+        .select("*");
+
+      if (dbErr) {
+        console.error("[Drive Callback Error] Supabase DB upsert failed:", dbErr);
+        return new NextResponse(
+          `<html><body><script>window.opener?.postMessage({ type: 'GOOGLE_DRIVE_AUTH_ERROR', error: '${dbErr.message}' }, '*');</script><h2 style="color:red;">Database Error: ${dbErr.message}</h2><p>Could not save connection details to Supabase.</p></body></html>`,
+          { headers: { "content-type": "text/html" } },
+        );
+      }
+
+      console.log("[Drive Callback Success] Saved connection to DB:", dbData);
     }
 
     const htmlContent = `
