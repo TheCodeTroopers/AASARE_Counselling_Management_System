@@ -74,10 +74,10 @@ export async function GET(req: NextRequest) {
       const { createDriveFolder } = await import("@/lib/google-drive");
       const { createClient } = await import("@supabase/supabase-js");
 
-      const SUPABASE_URL =
-        process.env.NEXT_PUBLIC_SUPABASE_URL ||
-        process.env.SUPABASE_URL ||
-        "https://vgsyirselvakpjcfwfgi.supabase.co";
+      const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+      const SUPABASE_URL = !rawUrl || rawUrl.includes("bofaaxmskkuxgsdpwopc")
+        ? "https://vgsyirselvakpjcfwfgi.supabase.co"
+        : rawUrl;
       const SUPABASE_KEY =
         process.env.SUPABASE_SERVICE_ROLE_KEY ||
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
