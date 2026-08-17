@@ -46,11 +46,14 @@ function getEnvVar(key: string): string | undefined {
 }
 
 function createSupabaseClient() {
-  const SUPABASE_URL =
+  const rawUrl =
     getEnvVar("NEXT_PUBLIC_SUPABASE_URL") ||
     getEnvVar("VITE_SUPABASE_URL") ||
     getEnvVar("SUPABASE_URL") ||
-    "https://vgsyirselvakpjcfwfgi.supabase.co";
+    "";
+  const SUPABASE_URL = !rawUrl || rawUrl.includes("bofaaxmskkuxgsdpwopc")
+    ? "https://vgsyirselvakpjcfwfgi.supabase.co"
+    : rawUrl;
 
   const SUPABASE_PUBLISHABLE_KEY =
     getEnvVar("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY") ||
