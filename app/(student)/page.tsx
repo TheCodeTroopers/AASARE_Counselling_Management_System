@@ -141,7 +141,7 @@ export default function StudentHomePage() {
 
         {/* Closing */}
         <section className="mx-auto max-w-7xl px-5 pb-24 md:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-primary px-8 py-16 text-primary-foreground shadow-2xl shadow-primary/20 md:px-16">
+          <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-10 text-primary-foreground shadow-2xl shadow-primary/20 md:px-16 md:py-16">
             <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-gold/30 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl" />
             <div className="relative max-w-2xl">

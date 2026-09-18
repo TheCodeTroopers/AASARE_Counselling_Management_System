@@ -24,7 +24,7 @@ DECLARE
       "department": "Computer Science & Engineering"
     },
     {
-      "name": "Ms. ASHWITHA C THOTA",
+      "name": "Ms. ASHWITHA C THOMAS",
       "email": "ashwithac.cs@sode-edu.in",
       "department": "Computer Science & Engineering"
     },

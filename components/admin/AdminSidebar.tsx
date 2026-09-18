@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { X } from "lucide-react";
 
 import {
   LayoutDashboard,
@@ -23,23 +24,40 @@ const nav: Array<{ label: string; href: string; icon: typeof LayoutDashboard }> 
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+  mobileOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function AdminSidebar({ mobileOpen = false, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
 
-  return (
-    <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-admin-border bg-[#fbf6ee] print:hidden">
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-admin-border">
-        <div className="grid h-9 w-9 place-items-center rounded-full bg-admin-primary text-[#f5e9c8] font-serif text-sm">
-          A
-        </div>
-        <div className="leading-tight">
-          <div className="font-serif text-admin-text text-lg tracking-wide">AASARE</div>
-          <div className="text-[10px] tracking-[0.18em] text-admin-muted uppercase">
-            Admin Console
+  const SidebarContent = () => (
+    <>
+      <div className="flex items-center justify-between gap-3 px-6 py-5 border-b border-admin-border">
+        <div className="flex items-center gap-3">
+          <div className="grid h-9 w-9 place-items-center rounded-full bg-admin-primary text-[#f5e9c8] font-serif text-sm">
+            A
+          </div>
+          <div className="leading-tight">
+            <div className="font-serif text-admin-text text-lg tracking-wide">AASARE</div>
+            <div className="text-[10px] tracking-[0.18em] text-admin-muted uppercase">
+              Admin Console
+            </div>
           </div>
         </div>
+        {/* Close button — mobile only */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="lg:hidden rounded-full p-1.5 text-admin-muted hover:bg-admin-bg transition-colors"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
       </div>
 
       <nav className="flex-1 px-3 py-5 space-y-1">
@@ -52,6 +70,7 @@ export default function AdminSidebar() {
             <Link
               key={href}
               href={href as never}
+              onClick={onClose}
               className={[
                 "group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                 active
@@ -72,7 +91,7 @@ export default function AdminSidebar() {
         <div className="rounded-2xl border border-admin-border bg-white/70 p-4">
           <div className="flex items-center gap-2 text-admin-primary">
             <ShieldCheck className="h-4 w-4" />
-            <span className="text-xs font-semibold tracking-wide">Private & Confidential</span>
+            <span className="text-xs font-semibold tracking-wide">Private &amp; Confidential</span>
           </div>
           <p className="mt-2 text-[11px] leading-relaxed text-[#7a5a4a]">
             Administrative actions are logged. Handle counsellor and student data with care.
@@ -90,6 +109,26 @@ export default function AdminSidebar() {
           </button>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible on lg+ */}
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col border-r border-admin-border bg-[#fbf6ee] print:hidden">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile drawer — slides in from left */}
+      <aside
+        className={[
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-admin-border bg-[#fbf6ee] shadow-2xl transition-transform duration-300 lg:hidden print:hidden",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
+        aria-label="Mobile admin navigation"
+      >
+        <SidebarContent />
+      </aside>
+    </>
   );
 }
