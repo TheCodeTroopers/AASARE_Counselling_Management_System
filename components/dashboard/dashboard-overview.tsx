@@ -44,7 +44,7 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
         {stats.map((stat) => (
           <StatCard
             key={stat.label}
@@ -72,7 +72,7 @@ export function DashboardOverview() {
           subtitle="Weekly appointments and counselling load"
           className="xl:col-span-2"
         >
-          <div className="h-72 w-full">
+          <div className="h-56 md:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
@@ -98,7 +98,7 @@ export function DashboardOverview() {
         </SectionCard>
 
         <SectionCard title="Status Distribution" subtitle="Case and appointment mix">
-          <div className="h-72 w-full">
+          <div className="h-56 md:h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid stroke="#e2e8f0" vertical={false} />

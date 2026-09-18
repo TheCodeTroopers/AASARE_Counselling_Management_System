@@ -55,8 +55,9 @@ export default function AuthPage() {
       }
     }
 
-    if (!authLoading && user) {
-      const activeRole = profile?.role || role || "student";
+    // Only redirect once auth loading is done AND we have a fully resolved profile
+    if (!authLoading && user && profile) {
+      const activeRole = profile.role;
       console.log(
         `[Auth Page Debug] Redirecting signed-in user (${user.email}) with role: ${activeRole}`,
       );
@@ -68,32 +69,13 @@ export default function AuthPage() {
         router.push("/");
       }
     }
-  }, [user, profile, role, authLoading, router]);
+  }, [user, profile, authLoading, router]);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
 
     const email = siEmail.trim().toLowerCase();
-
-    // Mock bypass for admin role
-    if (email.includes("admin")) {
-      toast.success("Welcome back (Mock Admin)");
-      if (typeof window !== "undefined") {
-        localStorage.setItem(
-          "mock_profile",
-          JSON.stringify({
-            id: "mock-admin-id",
-            email: email,
-            full_name: "AASARE Administrator",
-            role: "admin",
-          }),
-        );
-      }
-      setBusy(false);
-      router.push("/admin/dashboard");
-      return;
-    }
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: siEmail.trim(),
@@ -107,26 +89,55 @@ export default function AuthPage() {
     toast.success("Welcome back");
     const u = data.user;
     if (u) {
-      const userMetaRole = u.user_metadata?.role;
-      const lowerEmail = u.email?.toLowerCase() || "";
-      let targetRole: UserRole = "student";
+      // Fetch the real role from the DB — user_metadata alone is not reliable
+      let resolvedRole: UserRole = "student";
+      try {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", u.id)
+          .maybeSingle();
 
-      if (userMetaRole && ["student", "counsellor", "admin"].includes(userMetaRole)) {
-        targetRole = userMetaRole as UserRole;
-      } else if (lowerEmail.includes("counsellor") || lowerEmail.includes("counselor")) {
-        targetRole = "counsellor";
-      } else if (lowerEmail.includes("admin")) {
-        targetRole = "admin";
+        const dbRole = profileData?.role;
+        const userMetaRole = u.user_metadata?.role;
+        const lowerEmail = u.email?.toLowerCase() || "";
+
+        if (dbRole && ["student", "counsellor", "admin"].includes(dbRole)) {
+          resolvedRole = dbRole as UserRole;
+        } else if (userMetaRole && ["student", "counsellor", "admin"].includes(userMetaRole)) {
+          resolvedRole = userMetaRole as UserRole;
+        } else if (
+          lowerEmail.includes("counsellor") ||
+          lowerEmail.includes("counselor") ||
+          lowerEmail.includes("counselling")
+        ) {
+          resolvedRole = "counsellor";
+        } else if (lowerEmail.includes("admin")) {
+          resolvedRole = "admin";
+        }
+      } catch {
+        // Fallback to email heuristics if DB query fails
+        const lowerEmail = u.email?.toLowerCase() || "";
+        if (
+          lowerEmail.includes("counsellor") ||
+          lowerEmail.includes("counselor") ||
+          lowerEmail.includes("counselling")
+        ) {
+          resolvedRole = "counsellor";
+        } else if (lowerEmail.includes("admin")) {
+          resolvedRole = "admin";
+        }
       }
 
-      if (targetRole === "admin") {
+      if (resolvedRole === "admin") {
         router.push("/admin/dashboard");
-      } else if (targetRole === "counsellor") {
+      } else if (resolvedRole === "counsellor") {
         router.push("/dashboard");
       } else {
         router.push("/");
       }
     }
+    setBusy(false);
   }
 
   async function handleForgotPassword() {

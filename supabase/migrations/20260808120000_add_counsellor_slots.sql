@@ -74,7 +74,7 @@ UPDATE public.profiles SET counsellor_slug = 'subbulakshmi-karanth' WHERE email 
 UPDATE public.profiles SET counsellor_slug = 'reshma-nayak'         WHERE email = 'reshma.maths@sode-edu.in';
 UPDATE public.profiles SET counsellor_slug = 'shashikala-r'         WHERE email = 'shashikala.ec@sode-edu.in';
 UPDATE public.profiles SET counsellor_slug = 'savitha-shenoy'       WHERE email = 'savitha.cs@sode-edu.in';
-UPDATE public.profiles SET counsellor_slug = 'ashwitha-thota'       WHERE email = 'ashwithac.cs@sode-edu.in';
+UPDATE public.profiles SET counsellor_slug = 'ashwitha-thomas'       WHERE email = 'ashwithac.cs@sode-edu.in';
 UPDATE public.profiles SET counsellor_slug = 'mamatha'              WHERE email = 'mamathas.ml@sode-edu.in';
 UPDATE public.profiles SET counsellor_slug = 'karthik-v'            WHERE email = 'karthik.mech@sode-edu.in';
 UPDATE public.profiles SET counsellor_slug = 'neha-lakhotia'        WHERE email = 'nehal.mba@sode-edu.in';

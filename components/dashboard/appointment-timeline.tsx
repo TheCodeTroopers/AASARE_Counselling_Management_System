@@ -7,7 +7,7 @@ const slugMap: Record<string, string> = {
   "deepika.civil@sode-edu.in": "deepika-bv",
   "shashikala.ec@sode-edu.in": "shashikala-r",
   "savitha.cs@sode-edu.in": "savitha-shenoy",
-  "ashwithac.cs@sode-edu.in": "ashwitha-thota",
+  "ashwithac.cs@sode-edu.in": "ashwitha-thomas",
   "karthik.mech@sode-edu.in": "karthik-v",
   "mamathas.ml@sode-edu.in": "mamatha",
   "snkaranth.chemistry@sode-edu.in": "subbulakshmi-karanth",

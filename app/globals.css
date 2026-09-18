@@ -50,6 +50,16 @@ body {
   background: linear-gradient(135deg, #fcfaf8 0%, #f8f3ee 100%);
   color: #2f2f2f;
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+/* Smooth momentum scroll for horizontal scroll containers on iOS */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
 }
 
 .glass-card {

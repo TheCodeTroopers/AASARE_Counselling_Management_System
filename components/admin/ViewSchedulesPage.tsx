@@ -48,6 +48,9 @@ const statusStyles: Record<Status, string> = {
 
 const statusOptions: Array<Status | "All"> = ["All", "Confirmed", "Pending", "Rescheduled"];
 
+const VIEW_MODES = ["Day", "Week", "Month"] as const;
+type ViewMode = (typeof VIEW_MODES)[number];
+
 export default function ViewSchedulesPage() {
   const [slots, setSlots] = useState<Slot[]>(initialSlots);
   const [query, setQuery] = useState("");
@@ -55,6 +58,19 @@ export default function ViewSchedulesPage() {
   const [editing, setEditing] = useState<{ slot: Slot | null; day: number; hour: number } | null>(
     null,
   );
+  const [viewMode, setViewMode] = useState<ViewMode>("Week");
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  // Compute the displayed week label based on weekOffset
+  const getWeekLabel = () => {
+    const base = new Date(2025, 8, 22); // Mon 22 Sep 2025 as base week
+    base.setDate(base.getDate() + weekOffset * 7);
+    const end = new Date(base);
+    end.setDate(base.getDate() + 4);
+    const fmt = (d: Date) =>
+      d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    return `${base.getDate()} – ${fmt(end)}`;
+  };
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -109,68 +125,85 @@ export default function ViewSchedulesPage() {
   return (
     <>
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex items-center gap-1 rounded-full border border-admin-border bg-white p-1">
-          {["Day", "Week", "Month"].map((v, i) => (
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        {/* Row 1: view toggle + week nav + export */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="inline-flex items-center gap-1 rounded-full border border-admin-border bg-white p-1">
+            {VIEW_MODES.map((v) => (
+              <button
+                key={v}
+                onClick={() => setViewMode(v)}
+                className={[
+                  "px-3 py-1.5 text-xs rounded-full transition-colors",
+                  viewMode === v ? "bg-admin-primary text-admin-bg" : "text-[#4a2b30] hover:bg-admin-bg",
+                ].join(" ")}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5">
             <button
-              key={v}
-              className={[
-                "px-3 py-1.5 text-xs rounded-full",
-                i === 1 ? "bg-admin-primary text-admin-bg" : "text-[#4a2b30] hover:bg-admin-bg",
-              ].join(" ")}
+              onClick={() => setWeekOffset((w) => w - 1)}
+              className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg"
+              aria-label="Previous week"
             >
-              {v}
+              <ChevronLeft className="h-4 w-4 text-admin-primary" />
             </button>
-          ))}
-        </div>
+            <span className="text-xs font-medium text-admin-text flex items-center gap-1.5">
+              <CalendarDays className="h-3.5 w-3.5 text-admin-muted" />
+              {getWeekLabel()}
+            </span>
+            <button
+              onClick={() => setWeekOffset((w) => w + 1)}
+              className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg"
+              aria-label="Next week"
+            >
+              <ChevronRight className="h-4 w-4 text-admin-primary" />
+            </button>
+          </div>
 
-        <div className="inline-flex items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5">
-          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg">
-            <ChevronLeft className="h-4 w-4 text-admin-primary" />
+          <button
+            onClick={exportCsv}
+            className="ml-auto inline-flex items-center gap-2 rounded-full bg-admin-primary px-4 py-1.5 text-xs font-medium text-admin-bg hover:bg-admin-primary-hover"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Export CSV</span>
+            <span className="sm:hidden">CSV</span>
           </button>
-          <span className="text-xs font-medium text-admin-text flex items-center gap-1.5">
-            <CalendarDays className="h-3.5 w-3.5 text-admin-muted" />
-            22 – 26 Sep, 2025
-          </span>
-          <button className="grid h-6 w-6 place-items-center rounded-full hover:bg-admin-bg">
-            <ChevronRight className="h-4 w-4 text-admin-primary" />
-          </button>
         </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5 w-full md:w-64">
-          <Search className="h-4 w-4 text-admin-subtle" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search counsellor or student…"
-            className="w-full bg-transparent text-xs text-admin-text placeholder:text-[#b39c86] outline-none"
-          />
+        {/* Row 2: search + status filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 rounded-full border border-admin-border bg-white px-3 py-1.5 min-w-[180px]">
+            <Search className="h-4 w-4 text-admin-subtle shrink-0" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search counsellor or student…"
+              className="w-full bg-transparent text-xs text-admin-text placeholder:text-[#b39c86] outline-none"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as (typeof statusOptions)[number])}
+            className="rounded-full border border-admin-border bg-white px-3 py-1.5 text-xs text-admin-text"
+          >
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>
+                {s === "All" ? "All statuses" : s}
+              </option>
+            ))}
+          </select>
         </div>
-
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value as (typeof statusOptions)[number])}
-          className="rounded-full border border-admin-border bg-white px-3 py-1.5 text-xs text-admin-text"
-        >
-          {statusOptions.map((s) => (
-            <option key={s} value={s}>
-              {s === "All" ? "All statuses" : s}
-            </option>
-          ))}
-        </select>
-
-        <button
-          onClick={exportCsv}
-          className="ml-auto inline-flex items-center gap-2 rounded-full bg-admin-primary px-4 py-1.5 text-xs font-medium text-admin-bg hover:bg-admin-primary-hover"
-        >
-          <Download className="h-3.5 w-3.5" />
-          Export CSV
-        </button>
       </div>
 
-      {/* Grid */}
+      {/* Grid — horizontally scrollable on mobile */}
       <div className="mt-5 overflow-hidden rounded-2xl border border-admin-border-dark bg-white shadow-sm">
-        <div className="grid" style={{ gridTemplateColumns: `80px repeat(${days.length}, 1fr)` }}>
+        <div className="overflow-x-auto">
+        <div className="grid min-w-[540px]" style={{ gridTemplateColumns: `80px repeat(${days.length}, 1fr)` }}>
           <div className="bg-admin-bg border-b border-[#f0e5d3]" />
           {days.map((d) => (
             <div
@@ -213,6 +246,7 @@ export default function ViewSchedulesPage() {
               })}
             </Fragment>
           ))}
+        </div>
         </div>
       </div>
 

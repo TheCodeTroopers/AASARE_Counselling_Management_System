@@ -81,8 +81,8 @@ export const counsellors: Counsellor[] = [
     image: "/savitha-2.jpg",
   },
   {
-    id: "ashwitha-thota",
-    name: "Ms. ASHWITHA C THOTA",
+    id: "ashwitha-thomas",
+    name: "Ms. ASHWITHA C THOMAS",
     designation: "Faculty Counsellor",
     department: "Computer Science & Engineering",
     bio: "Focuses on peer relationships, hostel life, and finding balance during hectic semesters.",
