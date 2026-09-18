@@ -106,7 +106,11 @@ export default function AuthPage() {
           resolvedRole = dbRole as UserRole;
         } else if (userMetaRole && ["student", "counsellor", "admin"].includes(userMetaRole)) {
           resolvedRole = userMetaRole as UserRole;
-        } else if (lowerEmail.includes("counsellor") || lowerEmail.includes("counselor")) {
+        } else if (
+          lowerEmail.includes("counsellor") ||
+          lowerEmail.includes("counselor") ||
+          lowerEmail.includes("counselling")
+        ) {
           resolvedRole = "counsellor";
         } else if (lowerEmail.includes("admin")) {
           resolvedRole = "admin";
@@ -114,7 +118,11 @@ export default function AuthPage() {
       } catch {
         // Fallback to email heuristics if DB query fails
         const lowerEmail = u.email?.toLowerCase() || "";
-        if (lowerEmail.includes("counsellor") || lowerEmail.includes("counselor")) {
+        if (
+          lowerEmail.includes("counsellor") ||
+          lowerEmail.includes("counselor") ||
+          lowerEmail.includes("counselling")
+        ) {
           resolvedRole = "counsellor";
         } else if (lowerEmail.includes("admin")) {
           resolvedRole = "admin";

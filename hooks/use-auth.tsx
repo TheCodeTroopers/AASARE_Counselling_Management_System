@@ -57,7 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resolvedRole = dbRole as UserRole;
       } else if (userMetaRole && ["student", "counsellor", "admin"].includes(userMetaRole)) {
         resolvedRole = userMetaRole as UserRole;
-      } else if (lowerEmail.includes("counsellor") || lowerEmail.includes("counselor")) {
+      } else if (
+        lowerEmail.includes("counsellor") ||
+        lowerEmail.includes("counselor") ||
+        lowerEmail.includes("counselling")
+      ) {
         resolvedRole = "counsellor";
       } else if (lowerEmail.includes("admin")) {
         resolvedRole = "admin";
