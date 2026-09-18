@@ -56,8 +56,8 @@ export default function CounsellorsPage() {
               className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
             />
           </div>
-          <div className="flex items-center gap-3">
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
+          <div className="flex flex-wrap items-center gap-3">
+            <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value)}
@@ -69,7 +69,7 @@ export default function CounsellorsPage() {
                 </option>
               ))}
             </select>
-            <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground shrink-0">
               <input
                 type="checkbox"
                 checked={onlyAvailable}
@@ -110,23 +110,23 @@ export default function CounsellorsPage() {
                 ))}
               </div>
 
-              <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm">
+              <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm gap-2">
                 <span
                   className={
-                    "inline-flex items-center gap-1.5 " +
+                    "inline-flex items-center gap-1.5 shrink-0 " +
                     (c.available ? "text-emerald-700" : "text-stone-500")
                   }
                 >
                   <span
                     className={
-                      "h-1.5 w-1.5 rounded-full " +
+                      "h-1.5 w-1.5 rounded-full shrink-0 " +
                       (c.available ? "bg-emerald-500" : "bg-stone-400")
                     }
                   />
-                  {c.available ? "Accepting requests" : "Currently unavailable"}
+                  {c.available ? "Accepting requests" : "Unavailable"}
                 </span>
-                <span className="font-medium text-primary opacity-0 transition group-hover:opacity-100">
-                  View →
+                <span className="inline-flex items-center shrink-0 gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  View Details
                 </span>
               </div>
             </Link>
