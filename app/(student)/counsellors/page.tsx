@@ -56,19 +56,21 @@ export default function CounsellorsPage() {
               className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <select
-              value={dept}
-              onChange={(e) => setDept(e.target.value)}
-              className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
-            >
-              {departments.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <select
+                value={dept}
+                onChange={(e) => setDept(e.target.value)}
+                className="w-full sm:w-auto rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-primary/40"
+              >
+                {departments.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </div>
             <label className="flex cursor-pointer items-center gap-2 text-sm text-muted-foreground shrink-0">
               <input
                 type="checkbox"
