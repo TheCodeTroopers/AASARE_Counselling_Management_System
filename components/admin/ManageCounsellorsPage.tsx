@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { Search, Filter, Plus, Mail, Phone, MoreHorizontal, X, Trash2, RefreshCcw, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type Counsellor = {
   name: string;
@@ -40,7 +41,12 @@ export default function ManageCounsellorsPage() {
   const fetchCounsellors = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("/api/admin/counsellors");
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      
+      const res = await fetch("/api/admin/counsellors", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       if (res.ok) {
         const data = await res.json();
         const mapped = data.counsellors.map((c: any) => ({
@@ -119,9 +125,15 @@ export default function ManageCounsellorsPage() {
     if (!form.name || !form.email) return;
     setIsSaving(true);
     try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+
       const res = await fetch("/api/admin/counsellors", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
         body: JSON.stringify({
           name: form.name,
           email: form.email,
