@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { createClient } from "@/integrations/supabase/server";
+import { createAuthedSupabase, getBearerToken } from "@/lib/supabase-server";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createAuthedSupabase(getBearerToken(request));
     
     // Authenticate admin request
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser(getBearerToken(request) || undefined);
     
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,12 +44,12 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = createAuthedSupabase(getBearerToken(request));
     
     // Authenticate admin request
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const { data: { user }, error: authError } = await supabase.auth.getUser(getBearerToken(request) || undefined);
     
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
