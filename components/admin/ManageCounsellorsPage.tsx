@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, Filter, Plus, Mail, Phone, MoreHorizontal, X, Trash2, RefreshCcw } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { Search, Filter, Plus, Mail, Phone, MoreHorizontal, X, Trash2, RefreshCcw, Loader2 } from "lucide-react";
 
 type Counsellor = {
   name: string;
@@ -12,81 +12,6 @@ type Counsellor = {
   status: "Active" | "On leave" | "Pending";
 };
 
-const initialCounsellors: Counsellor[] = [
-  {
-    name: "Dr. Subbulakshmi N Karanth",
-    dept: "Basic Sciences and Humanities",
-    email: "subbulakshmi.karanth@sode-edu.in",
-    phone: "+91 98450 12341",
-    sessions: 28,
-    status: "Active",
-  },
-  {
-    name: "Ms. Reshma Nayak",
-    dept: "Basic Sciences and Humanities",
-    email: "reshma.nayak@sode-edu.in",
-    phone: "+91 98450 12342",
-    sessions: 24,
-    status: "Active",
-  },
-  {
-    name: "Ms. Shashikala R",
-    dept: "Electronics and Communication Engineering",
-    email: "shashikala.r@sode-edu.in",
-    phone: "+91 98450 12343",
-    sessions: 31,
-    status: "Active",
-  },
-  {
-    name: "Ms. Savitha A Shenoy",
-    dept: "Computer Science and Engineering",
-    email: "savitha.shenoy@sode-edu.in",
-    phone: "+91 98450 12344",
-    sessions: 35,
-    status: "Active",
-  },
-  {
-    name: "Ms. Ashwitha C Thomas",
-    dept: "Computer Science and Engineering",
-    email: "ashwitha.thomas@sode-edu.in",
-    phone: "+91 98450 12345",
-    sessions: 32,
-    status: "Active",
-  },
-  {
-    name: "Dr. Deepika B V",
-    dept: "Artificial Intelligence & Data Science",
-    email: "deepika.bv@sode-edu.in",
-    phone: "+91 98450 12346",
-    sessions: 42,
-    status: "Active",
-  },
-  {
-    name: "Ms. Mamatha",
-    dept: "Artificial Intelligence & Machine Learning",
-    email: "mamatha@sode-edu.in",
-    phone: "+91 98450 12347",
-    sessions: 26,
-    status: "Active",
-  },
-  {
-    name: "Mr. Karthik V",
-    dept: "Mechanical Engineering",
-    email: "karthik.v@sode-edu.in",
-    phone: "+91 98450 12348",
-    sessions: 19,
-    status: "Active",
-  },
-  {
-    name: "Dr. Neha Lakhotia",
-    dept: "Business Administration",
-    email: "neha.lakhotia@sode-edu.in",
-    phone: "+91 98450 12349",
-    sessions: 29,
-    status: "Active",
-  },
-];
-
 const statusStyles: Record<string, string> = {
   Active: "bg-[#e9f3ea] text-admin-success border-[#cfe3d1]",
   "On leave": "bg-[#f5e8ea] text-admin-primary border-[#e9c9ce]",
@@ -96,7 +21,9 @@ const statusStyles: Record<string, string> = {
 const statusOptions: Array<Counsellor["status"] | "All"> = ["All", "Active", "On leave", "Pending"];
 
 export default function ManageCounsellorsPage() {
-  const [counsellors, setCounsellors] = useState<Counsellor[]>(initialCounsellors);
+  const [counsellors, setCounsellors] = useState<Counsellor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<(typeof statusOptions)[number]>("All");
   const [filterOpen, setFilterOpen] = useState(false);
@@ -109,6 +36,35 @@ export default function ManageCounsellorsPage() {
     sessions: 0,
     status: "Active",
   });
+
+  const fetchCounsellors = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/admin/counsellors");
+      if (res.ok) {
+        const data = await res.json();
+        const mapped = data.counsellors.map((c: any) => ({
+          name: c.full_name || "",
+          dept: c.department || "",
+          email: c.email || "",
+          phone: c.phone || "+91 (Unknown)",
+          sessions: c.sessions || 0,
+          status: c.status || "Active",
+        }));
+        setCounsellors(mapped);
+      } else {
+        console.error("Failed to fetch counsellors");
+      }
+    } catch (error) {
+      console.error("Error fetching counsellors", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCounsellors();
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -158,12 +114,38 @@ export default function ManageCounsellorsPage() {
     setMenuOpenEmail(null);
   }
 
-  function submitAdd(e: React.FormEvent) {
+  async function submitAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name || !form.email) return;
-    setCounsellors((prev) => [{ ...form, sessions: Number(form.sessions) || 0 }, ...prev]);
-    setForm({ name: "", dept: "", email: "", phone: "", sessions: 0, status: "Active" });
-    setAddOpen(false);
+    setIsSaving(true);
+    try {
+      const res = await fetch("/api/admin/counsellors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          department: form.dept,
+          phone: form.phone,
+          status: form.status,
+          sessions: form.sessions
+        })
+      });
+
+      if (res.ok) {
+        // Success
+        await fetchCounsellors();
+        setForm({ name: "", dept: "", email: "", phone: "", sessions: 0, status: "Active" });
+        setAddOpen(false);
+      } else {
+        const err = await res.json();
+        alert("Error adding counsellor: " + (err.error || "Unknown error"));
+      }
+    } catch (error: any) {
+      alert("Error adding counsellor: " + error.message);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -231,8 +213,13 @@ export default function ManageCounsellorsPage() {
           <div className="col-span-1">Status</div>
           <div className="col-span-1 text-right">Actions</div>
         </div>
-        <div className="divide-y divide-[#f4ebd9]">
-          {filtered.length === 0 && (
+        <div className="divide-y divide-[#f4ebd9] relative min-h-[100px]">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50 backdrop-blur-[2px]">
+              <Loader2 className="h-6 w-6 animate-spin text-admin-primary" />
+            </div>
+          )}
+          {!isLoading && filtered.length === 0 && (
             <div className="px-6 py-8 text-center text-sm text-admin-muted">
               No counsellors match your filters.
             </div>
@@ -529,8 +516,10 @@ export default function ManageCounsellorsPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-full bg-admin-primary px-4 py-2 text-sm font-medium text-admin-bg hover:bg-admin-primary-hover"
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 rounded-full bg-admin-primary px-4 py-2 text-sm font-medium text-admin-bg hover:bg-admin-primary-hover disabled:opacity-70 disabled:cursor-not-allowed"
               >
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save Counsellor
               </button>
             </div>
