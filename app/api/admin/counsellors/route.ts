@@ -119,3 +119,44 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = createAuthedSupabase(getBearerToken(request));
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(getBearerToken(request) || undefined);
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("role" as any)
+      .eq("id", user.id)
+      .single() as any;
+
+    if (profileError || profileData?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    const { userId } = await request.json();
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
+
+    // Delete from Supabase Auth — this also removes the identity
+    const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (deleteError) throw deleteError;
+
+    // Explicitly delete profile row in case there is no cascade
+    await supabaseAdmin.from("profiles").delete().eq("id", userId);
+
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("Error deleting counsellor:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to delete counsellor" },
+      { status: 500 }
+    );
+  }
+}
