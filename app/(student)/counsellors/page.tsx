@@ -1,21 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { Search, SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Search, SlidersHorizontal, Loader2 } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
-import { counsellors } from "@/lib/counsellors";
+import { fetchCounsellors, type Counsellor } from "@/lib/counsellors";
 
 export default function CounsellorsPage() {
+  const [counsellors, setCounsellors] = useState<Counsellor[]>([]);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [dept, setDept] = useState<string>("All");
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
+  useEffect(() => {
+    fetchCounsellors().then(data => {
+      setCounsellors(data);
+      setLoading(false);
+    });
+  }, []);
+
   const departments = useMemo(
     () => ["All", ...Array.from(new Set(counsellors.map((c) => c.department)))],
-    [],
+    [counsellors],
   );
 
   const filtered = counsellors.filter((c) => {
@@ -85,58 +94,64 @@ export default function CounsellorsPage() {
 
         {/* Grid */}
         <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((c) => (
-            <Link
-              key={c.id}
-              href={`/counsellors/${c.id}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
-            >
-              {c.isCoordinator && (
-                <span className="absolute right-4 top-4 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
-                  Coordinator
-                </span>
-              )}
-              <CounsellorAvatar counsellor={c} size="lg" />
-              <h3 className="mt-5 font-display text-2xl leading-tight text-foreground">{c.name}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{c.designation}</p>
-              <p className="mt-0.5 text-sm text-primary/80">{c.department}</p>
-
-              <div className="mt-4 flex flex-wrap gap-1.5">
-                {c.specialties.map((s) => (
-                  <span
-                    key={s}
-                    className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm gap-2">
-                <span
-                  className={
-                    "inline-flex items-center gap-1.5 shrink-0 " +
-                    (c.available ? "text-emerald-700" : "text-stone-500")
-                  }
-                >
-                  <span
-                    className={
-                      "h-1.5 w-1.5 rounded-full shrink-0 " +
-                      (c.available ? "bg-emerald-500" : "bg-stone-400")
-                    }
-                  />
-                  {c.available ? "Accepting requests" : "Unavailable"}
-                </span>
-                <span className="inline-flex items-center shrink-0 gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  View Details
-                </span>
-              </div>
-            </Link>
-          ))}
-          {filtered.length === 0 && (
+          {loading ? (
+            <div className="col-span-full flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-20 text-muted-foreground">
+              <Loader2 className="h-8 w-8 animate-spin text-primary/40 mb-4" />
+              <p>Loading counsellors directory...</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="col-span-full rounded-2xl border border-dashed border-border p-14 text-center text-muted-foreground">
               No counsellors match that filter yet.
             </div>
+          ) : (
+            filtered.map((c) => (
+              <Link
+                key={c.id}
+                href={`/counsellors/${c.id}`}
+                className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 transition hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
+              >
+                {c.isCoordinator && (
+                  <span className="absolute right-4 top-4 rounded-full border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-primary">
+                    Coordinator
+                  </span>
+                )}
+                <CounsellorAvatar counsellor={c} size="lg" />
+                <h3 className="mt-5 font-display text-2xl leading-tight text-foreground">{c.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{c.designation}</p>
+                <p className="mt-0.5 text-sm text-primary/80">{c.department}</p>
+
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                  {c.specialties.map((s) => (
+                    <span
+                      key={s}
+                      className="rounded-full bg-secondary px-2.5 py-0.5 text-[11px] font-medium text-secondary-foreground"
+                    >
+                      {s}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-5 flex items-center justify-between border-t border-border pt-4 text-sm gap-2">
+                  <span
+                    className={
+                      "inline-flex items-center gap-1.5 shrink-0 " +
+                      (c.available ? "text-emerald-700" : "text-stone-500")
+                    }
+                  >
+                    <span
+                      className={
+                        "h-1.5 w-1.5 rounded-full shrink-0 " +
+                        (c.available ? "bg-emerald-500" : "bg-stone-400")
+                      }
+                    />
+                    {c.available ? "Accepting requests" : "Unavailable"}
+                  </span>
+                  <span className="inline-flex items-center shrink-0 gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                    View Details
+                  </span>
+                </div>
+              </Link>
+            ))
           )}
         </div>
       </main>

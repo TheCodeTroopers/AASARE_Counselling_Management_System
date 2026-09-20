@@ -43,7 +43,14 @@ function getNext7Days() {
 export default function CounsellorDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const counsellorId = resolvedParams.id;
-  const counsellor = getCounsellor(counsellorId);
+  const [counsellor, setCounsellor] = useState<any>(null);
+  const [counsellorLoading, setCounsellorLoading] = useState(true);
+
+  useEffect(() => {
+    getCounsellor(counsellorId)
+      .then(setCounsellor)
+      .finally(() => setCounsellorLoading(false));
+  }, [counsellorId]);
 
   const router = useRouter();
   const { user } = useAuth();
@@ -140,7 +147,18 @@ export default function CounsellorDetailPage({ params }: { params: Promise<{ id:
     };
   }, [counsellor, selectedDate]);
 
-  if (!counsellor) {
+  if (counsellorLoading) {
+    return (
+      <div className="min-h-screen">
+        <SiteHeader />
+        <div className="mx-auto max-w-3xl px-6 py-24 text-center">
+          <p className="mt-3 text-muted-foreground animate-pulse">Loading counsellor profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!counsellor && !counsellorLoading) {
     return (
       <div className="min-h-screen">
         <SiteHeader />
