@@ -9,133 +9,58 @@ export type Counsellor = {
   available: boolean;
   isCoordinator?: boolean;
   initials: string;
-  accent: string; // avatar tint
-  image?: string; // optional photo from /public
+  accent: string;
+  image?: string;
 };
 
-export const counsellors: Counsellor[] = [
-  {
-    id: "deepika-bv",
-    name: "Dr. Deepika B V",
-    designation: "Committee Coordinator, SWO",
-    department: "Civil Engineering",
-    bio: "Coordinator of the AASARE Institutional Counselling Cell. Focused on student wellbeing, academic stress, and career direction.",
-    specialties: ["Academic Stress", "Career Guidance", "Coordinator"],
-    email: "deepika.civil@sode-edu.in",
-    available: true,
-    isCoordinator: true,
-    initials: "DB",
-    accent: "oklch(0.62 0.14 25)",
-    image: "/Dr. Deepika B V.webp",
-  },
-  {
-    id: "subbulakshmi-karanth",
-    name: "Dr. Subbulakshmi N Karanth",
-    designation: "Faculty Counsellor",
-    department: "Basic Sciences & Humanities",
-    bio: "Supports first-year students through the transition into college life and foundational coursework.",
-    specialties: ["Freshman Support", "Study Habits"],
-    email: "snkaranth.chemistry@sode-edu.in",
-    available: true,
-    initials: "SK",
-    accent: "oklch(0.65 0.12 60)",
-    image: "/SUBBALAKSHMI-CHEM.jpg",
-  },
-  {
-    id: "reshma-nayak",
-    name: "Ms. Reshma Nayak",
-    designation: "Faculty Counsellor",
-    department: "Basic Sciences & Humanities",
-    bio: "A warm listener who works with students on stress management, motivation, and personal challenges.",
-    specialties: ["Stress", "Motivation", "Personal"],
-    email: "reshma.maths@sode-edu.in",
-    available: true,
-    initials: "RN",
-    accent: "oklch(0.7 0.11 40)",
-    image: "/Reshma-Nayak-Maths.jpg",
-  },
-  {
-    id: "shashikala-r",
-    name: "Ms. Shashikala",
-    designation: "Faculty Counsellor",
-    department: "Electronics & Communication Engineering",
-    bio: "Guides ECE students through academic difficulties, project stress, and internship-related concerns.",
-    specialties: ["Academics", "Internships"],
-    email: "shashikala.ec@sode-edu.in",
-    available: true,
-    initials: "SR",
-    accent: "oklch(0.6 0.12 200)",
-    image: "/SHASHIKALA-R.jpg",
-  },
-  {
-    id: "savitha-shenoy",
-    name: "Ms. Savitha Shenoy",
-    designation: "Faculty Counsellor",
-    department: "Computer Science & Engineering",
-    bio: "Approachable mentor for CSE students navigating placements, imposter syndrome, and workload.",
-    specialties: ["Placements", "Workload"],
-    email: "savitha.cs@sode-edu.in",
-    available: true,
-    initials: "SS",
-    accent: "oklch(0.68 0.12 300)",
-    image: "/savitha-2.jpg",
-  },
-  {
-    id: "ashwitha-thomas",
-    name: "Ms. ASHWITHA C THOMAS",
-    designation: "Faculty Counsellor",
-    department: "Computer Science & Engineering",
-    bio: "Focuses on peer relationships, hostel life, and finding balance during hectic semesters.",
-    specialties: ["Peer Support", "Life Balance"],
-    email: "ashwithac.cs@sode-edu.in",
-    available: true,
-    initials: "AT",
-    accent: "oklch(0.66 0.13 340)",
-    image: "/Ashwitha.webp",
-  },
-  {
-    id: "mamatha",
-    name: "Ms. MAMATHA",
-    designation: "Faculty Counsellor",
-    department: "Artificial Intelligence & Machine Learning",
-    bio: "Helps students set realistic goals, plan academic milestones, and address anxiety around performance.",
-    specialties: ["Goal Setting", "Anxiety"],
-    email: "mamathas.ml@sode-edu.in",
-    available: true,
-    initials: "MA",
-    accent: "oklch(0.68 0.13 150)",
-    image: "/Ms. Mamatha AI and ML.jpg",
-  },
-  {
-    id: "karthik-v",
-    name: "Mr. Karthik V",
-    designation: "Faculty Counsellor",
-    department: "Mechanical Engineering",
-    bio: "Practical, grounded mentor for students dealing with family expectations and long-term direction.",
-    specialties: ["Family Pressure", "Direction"],
-    email: "karthik.mech@sode-edu.in",
-    available: true,
-    initials: "KV",
-    accent: "oklch(0.6 0.12 90)",
-    image: "/Karthik-Mech-1-e1690266651386.jpg",
-  },
-  {
-    id: "neha-lakhotia",
-    name: "Dr. Neha Lakhotia",
-    designation: "Faculty Counsellor",
-    department: "Business Administration",
-    bio: "Supports MBA and inter-disciplinary students on career pivots, self-confidence, and communication.",
-    specialties: ["Career", "Confidence"],
-    email: "nehal.mba@sode-edu.in",
-    available: true,
-    initials: "NL",
-    accent: "oklch(0.66 0.13 15)",
-    image: "/Dr.-Neha-Lakhotia.jpg",
-  },
-];
+// Simple hash function to generate a consistent color based on email
+function getAccent(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const hue = Math.abs(hash) % 360;
+  return `oklch(0.65 0.12 ${hue})`;
+}
 
-export function getCounsellor(id: string) {
-  return counsellors.find((c) => c.id === id);
+// Generate initials from full name
+function getInitials(name: string) {
+  const parts = name.replace(/^(Dr\.|Mr\.|Ms\.)\s*/i, "").trim().split(" ");
+  if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return "CN";
+}
+
+export async function fetchCounsellors(): Promise<Counsellor[]> {
+  try {
+    const res = await fetch("/api/counsellors");
+    if (!res.ok) throw new Error("Failed to load counsellors");
+    const profiles = await res.json();
+    return profiles.map((p: any) => ({
+      id: p.id,
+      name: p.full_name || "Faculty Counsellor",
+      designation: p.designation || "Faculty Counsellor",
+      department: p.department || "Unknown Department",
+      bio: p.bio || "Dedicated faculty counsellor ready to support students in their academic and personal journey.",
+      specialties: Array.isArray(p.specialties) && p.specialties.length > 0 
+        ? p.specialties 
+        : ["General Support", "Student Wellbeing"],
+      email: p.email || "",
+      available: true, // we assume all are available in directory unless we link to another system
+      isCoordinator: p.is_coordinator || false,
+      initials: getInitials(p.full_name || "Counsellor"),
+      accent: getAccent(p.email || p.id),
+      image: p.image_url || undefined,
+    }));
+  } catch (err) {
+    console.error("Error fetching counsellors", err);
+    return [];
+  }
+}
+
+export async function getCounsellor(id: string): Promise<Counsellor | undefined> {
+  const list = await fetchCounsellors();
+  return list.find((c) => c.id === id);
 }
 
 export function getSlotsForCounsellor(counsellorId: string, dateISO: string) {
