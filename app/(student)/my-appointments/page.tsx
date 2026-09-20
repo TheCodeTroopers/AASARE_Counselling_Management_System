@@ -14,13 +14,14 @@ import {
   statusStyles,
   type Appointment,
 } from "@/lib/appointments";
-import { getCounsellor } from "@/lib/counsellors";
+import { fetchCounsellors, type Counsellor } from "@/lib/counsellors";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AppointmentsPage() {
   const [items, setItems] = useState<Appointment[]>([]);
+  const [counsellors, setCounsellors] = useState<Counsellor[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -35,8 +36,14 @@ export default function AppointmentsPage() {
     let mounted = true;
     const load = async () => {
       try {
-        const list = await fetchMyAppointments();
-        if (mounted) setItems(list);
+        const [list, counsellorsList] = await Promise.all([
+          fetchMyAppointments(),
+          fetchCounsellors()
+        ]);
+        if (mounted) {
+          setItems(list);
+          setCounsellors(counsellorsList);
+        }
       } catch (e) {
         console.error(e);
       } finally {
@@ -84,8 +91,8 @@ export default function AppointmentsPage() {
           <EmptyState />
         ) : (
           <div className="mt-10 space-y-12">
-            <Section title="Upcoming & pending" list={upcoming} onCancel={onCancel} />
-            <Section title="Past" list={past} muted />
+            <Section title="Upcoming & pending" list={upcoming} counsellors={counsellors} onCancel={onCancel} />
+            <Section title="Past" list={past} counsellors={counsellors} muted />
           </div>
         )}
       </main>
@@ -115,11 +122,13 @@ function EmptyState() {
 function Section({
   title,
   list,
+  counsellors,
   muted,
   onCancel,
 }: {
   title: string;
   list: Appointment[];
+  counsellors: Counsellor[];
   muted?: boolean;
   onCancel?: (id: string) => void;
 }) {
@@ -128,9 +137,10 @@ function Section({
     <section>
       <h2 className="font-display text-2xl text-foreground">{title}</h2>
       <div className="mt-4 space-y-4">
-        {list.map((a) => (
-          <AppointmentCard key={a.id} a={a} muted={muted} onCancel={onCancel} />
-        ))}
+        {list.map((a) => {
+          const c = counsellors.find(c => c.id === a.counsellorId);
+          return <AppointmentCard key={a.id} a={a} c={c} muted={muted} onCancel={onCancel} />;
+        })}
       </div>
     </section>
   );
@@ -138,14 +148,15 @@ function Section({
 
 function AppointmentCard({
   a,
+  c,
   muted,
   onCancel,
 }: {
   a: Appointment;
+  c?: Counsellor;
   muted?: boolean;
   onCancel?: (id: string) => void;
 }) {
-  const c = getCounsellor(a.counsellorId);
   if (!c) return null;
   const canCancel = a.status === "pending" || a.status === "approved";
   const dateLabel = new Date(a.date).toLocaleDateString(undefined, {
