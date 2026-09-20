@@ -5,6 +5,7 @@ import { Search, Filter, Plus, Mail, Phone, MoreHorizontal, X, Trash2, RefreshCc
 import { supabase } from "@/integrations/supabase/client";
 
 type Counsellor = {
+  id: string;
   name: string;
   dept: string;
   email: string;
@@ -50,6 +51,7 @@ export default function ManageCounsellorsPage() {
       if (res.ok) {
         const data = await res.json();
         const mapped = data.counsellors.map((c: any) => ({
+          id: c.id || "",
           name: c.full_name || "",
           dept: c.department || "",
           email: c.email || "",
@@ -104,9 +106,29 @@ export default function ManageCounsellorsPage() {
     setEditForm(null);
   }
 
-  function removeCounsellor(email: string) {
-    setCounsellors((prev) => prev.filter((c) => c.email !== email));
+  async function removeCounsellor(c: Counsellor) {
+    if (!window.confirm(`Remove ${c.name} from the counsellor panel?\nThis will permanently delete their account and all data.`)) return;
     setMenuOpenEmail(null);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      const res = await fetch("/api/admin/counsellors", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ userId: c.id }),
+      });
+      if (res.ok) {
+        setCounsellors((prev) => prev.filter((x) => x.id !== c.id));
+      } else {
+        const err = await res.json();
+        alert("Error removing counsellor: " + (err.error || "Unknown error"));
+      }
+    } catch (error: any) {
+      alert("Error removing counsellor: " + error.message);
+    }
   }
 
   function toggleStatus(email: string) {
@@ -283,7 +305,7 @@ export default function ManageCounsellorsPage() {
                             {c.status === "Active" ? "Set On leave" : "Set Active"}
                           </button>
                           <button
-                            onClick={() => removeCounsellor(c.email)}
+                            onClick={() => removeCounsellor(c)}
                             className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-admin-primary rounded-lg hover:bg-[#f5e8ea]"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -364,7 +386,7 @@ export default function ManageCounsellorsPage() {
                         {c.status === "Active" ? "Set On leave" : "Set Active"}
                       </button>
                       <button
-                        onClick={() => removeCounsellor(c.email)}
+                        onClick={() => removeCounsellor(c)}
                         className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-admin-primary rounded-lg hover:bg-[#f5e8ea]"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
