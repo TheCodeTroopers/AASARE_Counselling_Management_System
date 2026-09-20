@@ -5,8 +5,10 @@ import { getProfile, updateProfile, type UserProfile } from "@/services/profile.
 import { Button } from "@/components/common/button";
 import { SectionCard } from "@/components/common/section-card";
 import { LoadingSkeleton } from "@/components/common/loading-skeleton";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { Upload, User, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ProfilePanel() {
   const queryClient = useQueryClient();
@@ -16,10 +18,14 @@ export function ProfilePanel() {
   });
 
   const [form, setForm] = useState<Partial<UserProfile>>({});
+  const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (data) {
       setForm(data);
+      setPreviewUrl(data.image_url || null);
     }
   }, [data]);
 
@@ -48,6 +54,46 @@ export function ProfilePanel() {
 
   const handleSave = () => {
     mutation.mutate(form);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show local preview immediately
+    const localUrl = URL.createObjectURL(file);
+    setPreviewUrl(localUrl);
+
+    setUploading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/profile/avatar", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Upload failed");
+
+      // Update form state with the returned URL
+      setForm(prev => ({ ...prev, image_url: result.image_url }));
+      setPreviewUrl(result.image_url);
+      toast.success("Profile photo updated!");
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload photo");
+      setPreviewUrl(form.image_url || null);
+    } finally {
+      setUploading(false);
+      // Reset the file input so the same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
@@ -96,15 +142,52 @@ export function ProfilePanel() {
             onChange={e => handleChange("phone", e.target.value)}
           />
         </label>
-        <label className="text-sm text-text-secondary">
-          Profile Image URL (e.g. LinkedIn photo)
-          <input
-            className="mt-1 w-full rounded-2xl border border-border bg-secondary p-3 text-text outline-none transition focus:ring-2 focus:ring-primary/40"
-            value={form.image_url || ""}
-            onChange={e => handleChange("image_url", e.target.value)}
-            placeholder="https://..."
-          />
-        </label>
+        {/* Avatar upload */}
+        <div className="md:col-span-2 flex flex-col items-center gap-4 sm:flex-row sm:items-start mb-2">
+          <div className="relative shrink-0">
+            <div className="h-24 w-24 rounded-2xl overflow-hidden border-2 border-border bg-secondary flex items-center justify-center">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt="Profile"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <User className="h-10 w-10 text-muted-foreground/40" />
+              )}
+            </div>
+            {previewUrl && (
+              <button
+                type="button"
+                onClick={() => { setPreviewUrl(null); handleChange("image_url", null); }}
+                className="absolute -top-2 -right-2 rounded-full bg-rose-500 p-0.5 text-white shadow hover:bg-rose-600 transition"
+                title="Remove photo"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium text-text">Profile Photo</p>
+            <p className="text-xs text-text-secondary">JPEG, PNG or WebP · Max 5 MB</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleAvatarUpload}
+              disabled={uploading}
+            />
+            <Button
+              variant="ghost"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <Upload className="mr-2 h-4 w-4" />
+              {uploading ? "Uploading..." : "Choose Photo"}
+            </Button>
+          </div>
+        </div>
         <label className="text-sm text-text-secondary md:col-span-2">
           Specialties (comma separated)
           <input
