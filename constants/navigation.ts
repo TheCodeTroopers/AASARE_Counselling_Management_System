@@ -6,5 +6,6 @@ export const COUNSELLOR_NAV_ITEMS = [
   { label: "Case Management", href: "/case-management" },
   { label: "Google Drive", href: "/google-drive" },
   { label: "Notifications", href: "/notifications" },
+  { label: "My Profile", href: "/profile" },
   { label: "Logout", href: "#" },
 ] as const;
