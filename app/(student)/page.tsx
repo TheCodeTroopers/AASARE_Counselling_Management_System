@@ -5,10 +5,19 @@ import { ArrowRight, CalendarClock, Lock, HeartHandshake, Sparkles } from "lucid
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { CounsellorAvatar } from "@/components/counsellor-avatar";
-import { counsellors } from "@/lib/counsellors";
+import { fetchCounsellors, type Counsellor } from "@/lib/counsellors";
+import { useState, useEffect } from "react";
 
 export default function StudentHomePage() {
-  const featured = counsellors.slice(0, 4);
+  const [featured, setFeatured] = useState<Counsellor[]>([]);
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    fetchCounsellors().then((list) => {
+      setFeatured(list.slice(0, 4));
+      setTotal(list.length);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen">
@@ -98,7 +107,7 @@ export default function StudentHomePage() {
                   href="/counsellors"
                   className="mt-5 flex items-center justify-between rounded-xl bg-primary/5 px-4 py-3 text-sm font-medium text-primary transition hover:bg-primary/10"
                 >
-                  See all {counsellors.length} counsellors
+                  See all {total > 0 ? total : "our"} counsellors
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>

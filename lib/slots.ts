@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { counsellors } from "@/lib/counsellors";
+
 
 export type SlotRow = {
   id: string;
@@ -55,10 +55,25 @@ export async function fetchAvailableSlots(counsellorId: string): Promise<SlotRow
 // Matches auth email against the counsellors list — no DB column needed.
 export async function getMyCounsellorSlug(): Promise<string | null> {
   const { data: userData, error } = await supabase.auth.getUser();
-  if (error || !userData.user?.email) return null;
-  const email = userData.user.email.toLowerCase();
-  const match = counsellors.find((c) => c.email.toLowerCase() === email);
-  return match?.id ?? userData.user.id;
+  if (error || !userData.user) return null;
+
+  const userId = userData.user.id;
+  const email = userData.user.email?.toLowerCase() ?? "";
+
+  // Legacy slug map for original hardcoded counsellors
+  const legacyMap: Record<string, string> = {
+    "deepika.civil@sode-edu.in": "deepika-bv",
+    "snkaranth.chemistry@sode-edu.in": "subbulakshmi-karanth",
+    "reshma.maths@sode-edu.in": "reshma-nayak",
+    "shashikala.ec@sode-edu.in": "shashikala-r",
+    "savitha.cs@sode-edu.in": "savitha-shenoy",
+    "ashwithac.cs@sode-edu.in": "ashwitha-thomas",
+    "mamathas.ml@sode-edu.in": "mamatha",
+    "karthik.mech@sode-edu.in": "karthik-v",
+    "nehal.mba@sode-edu.in": "neha-lakhotia",
+  };
+
+  return legacyMap[email] ?? userId;
 }
 
 export type DateAvailabilityRow = {
