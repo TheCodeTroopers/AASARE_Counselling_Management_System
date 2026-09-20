@@ -123,6 +123,12 @@ export type Database = {
           updated_at: string;
           usn: string | null;
           year: string | null;
+          bio: string | null;
+          designation: string | null;
+          specialties: any | null;
+          image_url: string | null;
+          is_coordinator: boolean | null;
+          phone: string | null;
         };
         Insert: {
           created_at?: string;
@@ -133,6 +139,12 @@ export type Database = {
           updated_at?: string;
           usn?: string | null;
           year?: string | null;
+          bio?: string | null;
+          designation?: string | null;
+          specialties?: any | null;
+          image_url?: string | null;
+          is_coordinator?: boolean | null;
+          phone?: string | null;
         };
         Update: {
           created_at?: string;
@@ -143,6 +155,12 @@ export type Database = {
           updated_at?: string;
           usn?: string | null;
           year?: string | null;
+          bio?: string | null;
+          designation?: string | null;
+          specialties?: any | null;
+          image_url?: string | null;
+          is_coordinator?: boolean | null;
+          phone?: string | null;
         };
         Relationships: [];
       };

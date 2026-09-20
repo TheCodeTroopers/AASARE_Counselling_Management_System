@@ -167,37 +167,55 @@ export type Database = {
       };
       profiles: {
         Row: {
+          bio: string | null;
           created_at: string;
           counsellor_slug: string | null;
           department: string | null;
+          designation: string | null;
           email: string | null;
           full_name: string | null;
           id: string;
+          image_url: string | null;
+          is_coordinator: boolean | null;
+          phone: string | null;
           role: string | null;
+          specialties: any | null;
           updated_at: string;
           usn: string | null;
           year: string | null;
         };
         Insert: {
+          bio?: string | null;
           created_at?: string;
           counsellor_slug?: string | null;
           department?: string | null;
+          designation?: string | null;
           email?: string | null;
           full_name?: string | null;
           id: string;
+          image_url?: string | null;
+          is_coordinator?: boolean | null;
+          phone?: string | null;
           role?: string | null;
+          specialties?: any | null;
           updated_at?: string;
           usn?: string | null;
           year?: string | null;
         };
         Update: {
+          bio?: string | null;
           created_at?: string;
           counsellor_slug?: string | null;
           department?: string | null;
+          designation?: string | null;
           email?: string | null;
           full_name?: string | null;
           id?: string;
+          image_url?: string | null;
+          is_coordinator?: boolean | null;
+          phone?: string | null;
           role?: string | null;
+          specialties?: any | null;
           updated_at?: string;
           usn?: string | null;
           year?: string | null;

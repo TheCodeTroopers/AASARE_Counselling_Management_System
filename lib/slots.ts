@@ -58,7 +58,7 @@ export async function getMyCounsellorSlug(): Promise<string | null> {
   if (error || !userData.user?.email) return null;
   const email = userData.user.email.toLowerCase();
   const match = counsellors.find((c) => c.email.toLowerCase() === email);
-  return match?.id ?? null;
+  return match?.id ?? userData.user.id;
 }
 
 export type DateAvailabilityRow = {
