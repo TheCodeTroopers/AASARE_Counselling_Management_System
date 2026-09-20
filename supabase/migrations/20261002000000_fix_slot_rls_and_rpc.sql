@@ -64,11 +64,11 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT s.id, s.counsellor_id, s.time AS slot_time, s.available
+  SELECT s.id, s.counsellor_id, s.slot_time, s.available
   FROM public.counsellor_slots s
   WHERE s.counsellor_id = _counsellor_id
     AND s.available = true
-  ORDER BY s.time;
+  ORDER BY s.slot_time;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_available_slots(text) TO authenticated;
